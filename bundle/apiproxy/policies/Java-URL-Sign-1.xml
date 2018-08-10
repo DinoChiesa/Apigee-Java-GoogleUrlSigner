@@ -1,0 +1,12 @@
+<JavaCallout name='Java-URL-Sign-1'>
+  <Properties>
+    <Property name='private-key'>{my_private_key}</Property>
+    <Property name='private-key-password'>{my_private_key_password}</Property>
+    <Property name='verb'>GET</Property>
+    <Property name='resource'>{my_resource}</Property>
+    <!-- relative expiry -->
+    <Property name='expires-in'>10m</Property>
+  </Properties>
+  <ClassName>com.google.apigee.edgecallouts.rsa.SignedUrlCallout</ClassName>
+  <ResourceURL>java://edge-google-signed-url-1.0.3.jar</ResourceURL>
+</JavaCallout>

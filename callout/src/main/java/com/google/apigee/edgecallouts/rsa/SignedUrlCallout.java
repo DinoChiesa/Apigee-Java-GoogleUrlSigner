@@ -114,6 +114,19 @@ public class SignedUrlCallout extends SigningCalloutBase implements Execution {
         return readKeyPair(privateKeyPemString, privateKeyPassword);
     }
 
+
+    private long getExpiry(final MessageContext msgCtxt) throws Exception {
+        String expiresInExpression = getSimpleOptionalProperty("expires-in", msgCtxt);
+        if (expiresInExpression == null || expiresInExpression.equals("")) {
+            String expiry = getSimpleOptionalProperty("expiry", msgCtxt);
+            if (expiry == null || expiry.equals(""))
+                throw new IllegalStateException("the configuration must specify one of expiry or expires-in");
+            return Long.valueOf(expiry);
+        }
+        long expirationInSeconds = TimeResolver.getExpiryDate(expiresInExpression).getTime()/1000;
+        return expirationInSeconds;
+    }
+
     private String getSigningBase(final MessageContext msgCtxt) throws Exception {
         // StringToSign = HTTP_Verb + "\n" +
         //                Content_MD5 + "\n" +
@@ -125,29 +138,27 @@ public class SignedUrlCallout extends SigningCalloutBase implements Execution {
         String verb = getSimpleRequiredProperty("verb", msgCtxt);
         String contentMd5 = getSimpleOptionalProperty("content-md5", msgCtxt);
         String contentType = getSimpleOptionalProperty("content-type", msgCtxt);
-        String expiryExpression = getSimpleRequiredProperty("expires-in", msgCtxt);
-        long expirationInSeconds = TimeResolver.getExpiryDate(expiryExpression).getTime()/1000;
+        long expirationInSeconds = getExpiry(msgCtxt);
         String resource = getSimpleRequiredProperty("resource", msgCtxt);
         String canonicalizedExtensionHeaders = "";
         String stringToSign = verb + "\n" +
             (contentMd5!=null ? contentMd5 : "") + "\n" +
             (contentType!=null ? contentType : "") + "\n" +
             expirationInSeconds + "\n" +
-            canonicalizedExtensionHeaders + 
+            canonicalizedExtensionHeaders +
             resource;
         msgCtxt.setVariable(varName("expiration"), expirationInSeconds+"");
         msgCtxt.setVariable(varName("signing_string"), stringToSign);
         return stringToSign;
     }
-    
+
     static class TimeResolver {
         private final static Pattern expiryPattern =
-            Pattern.compile("^([1-9][0-9]*)(ms|s|m|h|d|w|)$", Pattern.CASE_INSENSITIVE);
+            Pattern.compile("^([1-9][0-9]*)(s|m|h|d|w|)$", Pattern.CASE_INSENSITIVE);
         private final static Map<String,Long> timeMultipliers;
-        private static String defaultUnit = "ms";
+        private static String defaultUnit = "s";
         static {
             Map<String,Long> m1 = new HashMap<String,Long>();
-            m1.put("ms",1L);
             m1.put("s", 1L*1000);
             m1.put("m", 60L*1000);
             m1.put("h", 60L*60*1000);
@@ -171,7 +182,7 @@ public class SignedUrlCallout extends SigningCalloutBase implements Execution {
         /*
          * convert a simple timespan string, expressed in days, hours, minutes, or
          * seconds, such as 30d, 12d, 8h, 24h, 45m, 30s, into a numeric quantity in
-         * seconds. Default TimeUnit is ms. Eg. 30 is treated as 30ms.
+         * seconds. Default TimeUnit is s. Eg. 30 is treated as 30s.
          */
         public static Long resolveExpression(String subject) {
             Matcher m = expiryPattern.matcher(subject);
@@ -184,7 +195,7 @@ public class SignedUrlCallout extends SigningCalloutBase implements Execution {
             return -1L;
         }
     }
-    
+
     public ExecutionResult execute (final MessageContext msgCtxt,
                                     final ExecutionContext execContext) {
         try {

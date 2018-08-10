@@ -38,7 +38,7 @@
           <Name>AM-Variables</Name>
         </Step>
         <Step>
-          <Name>Java-URL-Sign</Name>
+          <Name>Java-URL-Sign-1</Name>
         </Step>
       </Request>
       <Response>
@@ -47,6 +47,23 @@
         </Step>
       </Response>
       <Condition>(proxy.pathsuffix MatchesPath "/t1") and (request.verb = "GET")</Condition>
+    </Flow>
+
+    <Flow name="flow2">
+      <Request>
+        <Step>
+          <Name>AM-Variables</Name>
+        </Step>
+        <Step>
+          <Name>Java-URL-Sign-2</Name>
+        </Step>
+      </Request>
+      <Response>
+        <Step>
+          <Name>AM-Response</Name>
+        </Step>
+      </Response>
+      <Condition>(proxy.pathsuffix MatchesPath "/t2") and (request.verb = "GET")</Condition>
     </Flow>
 
     <Flow name="unknown request">

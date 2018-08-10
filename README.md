@@ -59,7 +59,7 @@ Configure the policy like this:
     <Property name='expires-in'>10m</Property>
   </Properties>
   <ClassName>com.google.apigee.edgecallouts.rsa.SignedUrlCallout</ClassName>
-  <ResourceURL>java://edge-google-signed-url-1.0.1.jar</ResourceURL>
+  <ResourceURL>java://edge-google-signed-url-1.0.3.jar</ResourceURL>
 </JavaCallout>
 ```
 
@@ -71,9 +71,12 @@ Within the Properties, you can specify the various inputs for the signature.
 | private-key-password | optional | the plaintext password for the key, if any. |
 | verb                 | required | the verb: GET, POST, etc |
 | resource             | required | the resource string, eg: /example-bucket/cat-pics/tabby.jpeg |
-| expires-in           | required | a string representing expiry.  10s, 5m, 3d.  With no character suffix, interpreted as "Seconds" |
+| expires-in           | optional | a string representing _relative_ expiry.  10s, 5m, 2h, 3d.  With no character suffix, interpreted as "seconds". This interval is added to the current time to calculate expiry. |
+| expiry               | optional | a string representing expiry, in absolute seconds-since-epoch. |
 | content-md5          | optional | the MD5 checksum the client must pass |
 | content-type         | optional | content-type header, as above. |
+
+You must pass one of `expires-in` or `expiry`. If you pass both, `expires-in` takes precedence.
 
 Today it is not possible to pass canonicalized extension headers.
 

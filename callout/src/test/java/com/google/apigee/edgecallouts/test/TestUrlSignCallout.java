@@ -147,7 +147,7 @@ public class TestUrlSignCallout {
 
     @Test
     public void test_MissingExpiresIn() throws Exception {
-        String expectedError = "expires-in resolves to an empty string";
+        String expectedError = "the configuration must specify one of expiry or expires-in";
         //msgCtxt.setVariable("variable-name", variableValue);
 
         Map<String,String> props = new HashMap<String,String>();
