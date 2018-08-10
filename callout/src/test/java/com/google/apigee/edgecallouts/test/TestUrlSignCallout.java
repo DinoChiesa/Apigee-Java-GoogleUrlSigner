@@ -266,8 +266,11 @@ public class TestUrlSignCallout {
         Object stacktrace =  msgCtxt.getVariable("sign_stacktrace");
         Assert.assertNull(stacktrace, "BogusPrivateKey() stacktrace");
 
-        Object resultB64 = msgCtxt.getVariable("sign_output_b64");
+        Object resultB64 = msgCtxt.getVariable("sign_output");
         Assert.assertNotNull(resultB64, "resultB64");
+
+        Object expiration = msgCtxt.getVariable("sign_expiration");
+        Assert.assertNotNull(expiration, "expiration");
 
         System.out.println("b64: " + resultB64);
         System.out.println("=========================================================");

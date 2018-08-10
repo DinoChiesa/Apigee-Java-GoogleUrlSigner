@@ -126,15 +126,17 @@ public class SignedUrlCallout extends SigningCalloutBase implements Execution {
         String contentMd5 = getSimpleOptionalProperty("content-md5", msgCtxt);
         String contentType = getSimpleOptionalProperty("content-type", msgCtxt);
         String expiryExpression = getSimpleRequiredProperty("expires-in", msgCtxt);
-        long expiration = TimeResolver.getExpiryDate(expiryExpression).getTime();
+        long expirationInSeconds = TimeResolver.getExpiryDate(expiryExpression).getTime()/1000;
         String resource = getSimpleRequiredProperty("resource", msgCtxt);
         String canonicalizedExtensionHeaders = "";
         String stringToSign = verb + "\n" +
             (contentMd5!=null ? contentMd5 : "") + "\n" +
             (contentType!=null ? contentType : "") + "\n" +
-            expiration + "\n" +
+            expirationInSeconds + "\n" +
             canonicalizedExtensionHeaders + 
             resource;
+        msgCtxt.setVariable(varName("expiration"), expirationInSeconds+"");
+        msgCtxt.setVariable(varName("signing_string"), stringToSign);
         return stringToSign;
     }
     
@@ -181,7 +183,6 @@ public class SignedUrlCallout extends SigningCalloutBase implements Execution {
             }
             return -1L;
         }
-
     }
     
     public ExecutionResult execute (final MessageContext msgCtxt,
@@ -191,10 +192,9 @@ public class SignedUrlCallout extends SigningCalloutBase implements Execution {
             KeyPair keypair = getPrivateKey(msgCtxt);
             byte[] resultBytes = sign_RSA_SHA256(signingBase, keypair);
             String outputVar = getOutputVar(msgCtxt);
-            //msgCtxt.setVariable(outputVar+ "_hex", Hex.toHexString(resultBytes));
-            msgCtxt.setVariable(outputVar+ "_b64", Base64.toBase64String(resultBytes));
             String signature = Base64.toBase64String(resultBytes);
-            msgCtxt.setVariable(outputVar+ "_b64_encoded", URLEncoder.encode(signature, "UTF-8"));
+            msgCtxt.setVariable(outputVar+ "_unencoded", signature);
+            msgCtxt.setVariable(outputVar, URLEncoder.encode(signature, "UTF-8"));
             return ExecutionResult.SUCCESS;
         }
         catch (IllegalStateException exc1) {

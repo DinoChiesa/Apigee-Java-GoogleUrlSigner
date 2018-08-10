@@ -2,7 +2,8 @@
   <Set>
     <Payload contentType='application/json'>{
     "status" : "ok",
-    "signature" "{sign_output_b64_encoded}"
+    "signature" : "{sign_output}",
+    "expiration" : "{sign_expiration}"
 }</Payload>
   </Set>
   <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>

@@ -21,6 +21,18 @@ Then sign it with an RSA key, using a SHA256 Digest.
 
 That's what this callout does.
 
+[This page](https://cloud.google.com/storage/docs/access-control/create-signed-urls-program)
+says the final URL should be:
+
+```
+BASE_URL + "?GoogleAccessId=" + GOOGLE_ACCESS_STORAGE_ID +
+           "&Expires=" + EXPIRATION +
+           "&Signature=" + URL_ENCODED_SIGNATURE
+```
+
+This callout produces only the url-encoded signature. You should rely on a subsequent
+AssignMessage/AssignVariable to assemble the full URL.
+
 ## Disclaimer
 
 This example is not an official Google product, nor is it part of an official Google product.
@@ -65,6 +77,15 @@ Within the Properties, you can specify the various inputs for the signature.
 
 Today it is not possible to pass canonicalized extension headers.
 
+The output of the callout is a set of context variables:
+
+| name                  | meaning |
+| --------------------- | ------------------------------------------------------------------------------ |
+| sign_output           | the base64-encoded signature value                                                  |
+| sign_output_unencoded | the unencoded signature value                                                       |
+| sign_expiration       | The expiration value. Computed from NOW + expires-in. You need this for building the URL. |
+
+
 ## Example
 
 See the attached [bundle](./bundle) for a working API Proxy.
@@ -87,7 +108,8 @@ Connection: keep-alive
 
 {
     "status" : "ok",
-    "signature" "B9%2F9RG1qERiGSHugt%2B8D4FKNoYzy94P9Tj7f8yP3Bxt1DaQSN7YkKpKrL%2FZmiroskNrPKxf%2BBjB%2BCe0byyRsWtU70pVvzTIvxu0xb5j9MgD5UWJnX12c0lO6VMukVSM%2BCm%2B29%2FE%2BvA5clYLyhRqaYAYTdS4kC%2BUcqZD50UStHGk1PV8ini35ja%2BpT6SSS2h7ZVg1vz5o22jKgaM%2BvdwdO9eXWoA2e%2BbQk8l8DsKUz0pTwndtNOXXorEJ5ZC4c3Rw5Z6j5zqzxDv4lhaPri7byJi7s%2FiIBh46q9HUS2MQhezah1IntuenkdcY8LDfJyD46QJdwQ6sE27rwer15lU0cg%3D%3D"
+    "signature" : "NVrNXYlV7jmxfiJFPKSWw7%2FXCMTmywCamQZiaE3boAZi5h3yY3ojriZxf3uVMN8DdXKRWF%2FyLa7%2FsfuQyq7qeJTYTvtR4z9mAdOgHNG1tJD1HqVol5F89GwCTBYWuSHwNeFCFIn8JoTZ%2Bc8K5UXhN7l2cMJmnvWGsm44%2B01HybRY9nqToeWPlZJs7lBLoBZRzTY5949DCRYTscuzKdx9ltJFmOF3EbRtJRLfvj0GkiJeiGHmQuflxilAriO2ZWpWXtyi46OM2jIX6iXcjQeqPra%2BByRE9xnF2ZmHrAHFv6NezbudnL%2FrZInLYVdbwRnlcdzE534BiLx2LHmFc08fYw%3D%3D",
+    "expiration" : "1533940417"
 }
 
 ```
