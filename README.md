@@ -4,9 +4,7 @@ This is a simple callout that geenrates a signed URL for Google Cloud Storage.
 
 Google Cloud Storage allows apps to create [signed URLs](https://cloud.google.com/storage/docs/access-control/signed-urls) with expiry, to allow third parties a time-limited access to a resource.
 
-The summary is:
-
-Build a string like this:
+To use signed URLs, the app must build a string like this:
 
 ```
 StringToSign = HTTP_Verb + "\n" +
@@ -22,16 +20,18 @@ Then sign it with an RSA key, using a SHA256 Digest.
 That's what this callout does.
 
 [This page](https://cloud.google.com/storage/docs/access-control/create-signed-urls-program)
-says the final URL should be:
+says the app must construct the final URL to be shared with the aprtner app, like so:
 
 ```
-BASE_URL + "?GoogleAccessId=" + GOOGLE_ACCESS_STORAGE_ID +
-           "&Expires=" + EXPIRATION +
-           "&Signature=" + URL_ENCODED_SIGNATURE
+FULL_URL =
+  BASE_URL +
+  "?GoogleAccessId=" + GOOGLE_ACCESS_STORAGE_ID +
+  "&Expires=" + EXPIRATION +
+  "&Signature=" + URL_ENCODED_SIGNATURE
 ```
 
-This callout produces only the url-encoded signature. You should rely on a subsequent
-AssignMessage/AssignVariable to assemble the full URL.
+This callout produces only the url-encoded signature, and the expiration. You should rely on a subsequent
+AssignMessage/AssignVariable to assemble the full URL. You must know the storage ID, and the base URL.
 
 ## Disclaimer
 
