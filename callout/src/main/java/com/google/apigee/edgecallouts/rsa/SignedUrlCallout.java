@@ -63,9 +63,17 @@ public class SignedUrlCallout extends SigningCalloutBase implements Execution {
         return signature;
     }
 
+    private static KeyPair produceKeyPair(PrivateKey privateKey)
+        throws InvalidKeySpecException, NoSuchAlgorithmException
+    {
+        BigInteger publicExponent = BigInteger.valueOf(65537); // assumption
+        PublicKey publicKey = KeyFactory
+            .getInstance("RSA")
+            .generatePublic(new RSAPublicKeySpec(((RSAPrivateKey)privateKey).getPrivateExponent(), publicExponent));
+        return new KeyPair(publicKey, privateKey);
+    }
 
-    private static KeyPair readKeyPair(String privateKeyPemString, String password)
-        throws IOException, OperatorCreationException, PKCSException, InvalidKeySpecException, NoSuchAlgorithmException
+    private static KeyPair readKeyPair(String privateKeyPemString, String password) throws Exception
     {
         if (password == null) password = "";
 
@@ -73,38 +81,44 @@ public class SignedUrlCallout extends SigningCalloutBase implements Execution {
         PEMParser pr = new PEMParser(new StringReader(privateKeyPemString));
         Object o = pr.readObject();
 
-        if (o == null || !((o instanceof PEMKeyPair) || (o instanceof PEMEncryptedKeyPair) || (o instanceof PKCS8EncryptedPrivateKeyInfo)) ) {
-            //System.out.printf("found %s\n", o.getClass().getName());
-            throw new IllegalStateException("Didn't find OpenSSL key");
+        if (o instanceof PrivateKeyInfo) {
+            // produced by openssl genpkey without encryption
+            return produceKeyPair((PrivateKey) converter.getPrivateKey((PrivateKeyInfo) o));
         }
 
         if (o instanceof PKCS8EncryptedPrivateKeyInfo) {
             // produced by "openssl genpkey" or the series of commands reqd to sign an ec key
-            //LOGGER.info("decodePrivateKey, encrypted PrivateKeyInfo");
             PKCS8EncryptedPrivateKeyInfo pkcs8EncryptedPrivateKeyInfo = (PKCS8EncryptedPrivateKeyInfo) o;
             JceOpenSSLPKCS8DecryptorProviderBuilder decryptorProviderBuilder = new JceOpenSSLPKCS8DecryptorProviderBuilder();
             InputDecryptorProvider decryptorProvider = decryptorProviderBuilder.build(password.toCharArray());
             PrivateKeyInfo privateKeyInfo = pkcs8EncryptedPrivateKeyInfo.decryptPrivateKeyInfo(decryptorProvider);
             PrivateKey privateKey = converter.getPrivateKey(privateKeyInfo);
-
-            BigInteger publicExponent = BigInteger.valueOf(65537);
-            PublicKey publicKey = KeyFactory
-                .getInstance("RSA")
-                .generatePublic(new RSAPublicKeySpec(((RSAPrivateKey)privateKey).getPrivateExponent(), publicExponent));
-            return new KeyPair(publicKey, privateKey);
+            return produceKeyPair(privateKey);
         }
 
-        KeyPair kp;
         if (o instanceof PEMEncryptedKeyPair) {
             PEMDecryptorProvider decProv = new JcePEMDecryptorProviderBuilder().setProvider("BC")
                 .build(password.toCharArray());
             return converter.getKeyPair(((PEMEncryptedKeyPair)o).decryptKeyPair(decProv));
         }
 
-        return converter.getKeyPair((PEMKeyPair)o);
+        if (o instanceof PEMEncryptedKeyPair) {
+            // produced by "openssl genrsa" or "openssl ec -genkey"
+            PEMEncryptedKeyPair encryptedKeyPair = (PEMEncryptedKeyPair) o;
+            PEMDecryptorProvider decryptorProvider = new JcePEMDecryptorProviderBuilder().build(password.toCharArray());
+            return converter.getKeyPair(encryptedKeyPair.decryptKeyPair(decryptorProvider));
+        }
+
+        if (o instanceof PEMKeyPair) {
+            PEMKeyPair unencryptedKeyPair = (PEMKeyPair) o;
+            return converter.getKeyPair(unencryptedKeyPair);
+        }
+
+        throw new Exception("unknown object type when decoding private key");
     }
 
-    private KeyPair getPrivateKey(MessageContext msgCtxt) throws Exception {
+    private KeyPair getPrivateKey(MessageContext msgCtxt) throws Exception
+    {
         String privateKeyPemString = getSimpleRequiredProperty("private-key", msgCtxt);
         privateKeyPemString = privateKeyPemString.trim();
 
@@ -213,9 +227,9 @@ public class SignedUrlCallout extends SigningCalloutBase implements Execution {
             return ExecutionResult.ABORT;
         }
         catch (Exception e) {
-            if (getDebug()) {
-                System.out.println(ExceptionUtils.getStackTrace(e));
-            }
+            // if (getDebug()) {
+            //     System.out.println(ExceptionUtils.getStackTrace(e));
+            // }
             setExceptionVariables(e,msgCtxt);
             msgCtxt.setVariable(varName("stacktrace"), ExceptionUtils.getStackTrace(e));
             return ExecutionResult.ABORT;

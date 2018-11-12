@@ -221,7 +221,7 @@ public class TestUrlSignCallout {
 
     @Test
     public void test_BogusPrivateKey() throws Exception {
-        String expectedError = "Didn't find OpenSSL key";
+        String expectedError = "unknown object type when decoding private key";
         //msgCtxt.setVariable("my-private-key", privateKey1);
 
         Map<String,String> props = new HashMap<String,String>();
@@ -241,7 +241,7 @@ public class TestUrlSignCallout {
         //System.out.printf("expected error: %s\n", errorOutput);
         Assert.assertEquals(errorOutput, expectedError, "error not as expected");
         Object stacktrace =  msgCtxt.getVariable("sign_stacktrace");
-        Assert.assertNull(stacktrace, "BogusPrivateKey() stacktrace");
+        Assert.assertNotNull(stacktrace, "BogusPrivateKey() stacktrace");
         System.out.println("=========================================================");
     }
 

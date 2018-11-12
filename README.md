@@ -59,7 +59,7 @@ Configure the policy like this:
     <Property name='expires-in'>10m</Property>
   </Properties>
   <ClassName>com.google.apigee.edgecallouts.rsa.SignedUrlCallout</ClassName>
-  <ResourceURL>java://edge-google-signed-url-1.0.3.jar</ResourceURL>
+  <ResourceURL>java://edge-google-signed-url-1.0.4.jar</ResourceURL>
 </JavaCallout>
 ```
 
