@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.google.apigee.edgecallouts</groupId>
   <artifactId>edge-google-signed-url</artifactId>
-  <version>1.0.4</version>
+  <version>1.0.5</version>
   <name>EdgeJavaGoogleSignedUrl</name>
   <url>http://maven.apache.org</url>
   <packaging>jar</packaging>
@@ -14,7 +14,8 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <java.version>1.8</java.version>
     <testng.version>6.8.7</testng.version>
-    <bouncycastle.version>1.54</bouncycastle.version>
+    <bouncycastle.version>1.60</bouncycastle.version>
+    <commons-lang3.version>3.7</commons-lang3.version>
     <apiproxy.java.rsrc.dir>../bundle/apiproxy/resources/java</apiproxy.java.rsrc.dir>
   </properties>
 
@@ -24,7 +25,7 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
-      <version>3.7</version>
+      <version>${commons-lang3.version}</version>
     </dependency>
 
     <dependency>
@@ -149,8 +150,9 @@ do it manually by running these commands:
                     <!-- copy any required dependencies tht are not
                     already included in the Edge runtime:
                     -->
-                    <include name="lib/commons-lang3-3.7.jar"/>
-
+                    <include name="lib/commons-lang3-${commons-lang3.version}.jar"/>
+                    <include name="lib/bcprov-jdk15on-${bouncycastle.version}.jar"/>
+                    <include name="lib/bcpkix-jdk15on-${bouncycastle.version}.jar"/>
                   </fileset>
                   <mapper type="flatten"/>
                 </copy>

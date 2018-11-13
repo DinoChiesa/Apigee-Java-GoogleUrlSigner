@@ -161,6 +161,8 @@ public class SignedUrlCallout extends SigningCalloutBase implements Execution {
             expirationInSeconds + "\n" +
             canonicalizedExtensionHeaders +
             resource;
+        msgCtxt.setVariable(varName("resource"), resource);
+        msgCtxt.setVariable(varName("verb"), verb);
         msgCtxt.setVariable(varName("expiration"), expirationInSeconds+"");
         msgCtxt.setVariable(varName("signing_string"), stringToSign);
         return stringToSign;
