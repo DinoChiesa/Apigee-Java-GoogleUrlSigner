@@ -1,7 +1,7 @@
 # Apigee Edge Signed URL callout
 
 This directory contains the Java source code and Java jars required to compile a Java
-callout for Apigee Edge that produces a signed URL, according to [this specification](https://cloud.google.com/storage/docs/access-control/signed-urls). 
+callout for Apigee Edge that produces a signed URL, according to [this specification](https://cloud.google.com/storage/docs/access-control/signed-urls).
 
 You do not need to build this Java code in order to use the JWT Generator or Verifier
 callout.  The callout will work, with the pre-built JAR file.  Find the pre-built JAR
@@ -14,11 +14,11 @@ appropriate apiproxy/resources/java directory for your API Proxy.
 
 ## What Good is This?
 
-Suppose you need to generate a URL for Google Cloud Storage resource, and expose it to someone else. You can do that with "signed URLs".  If you want to do this from within an Apigee Edge proxy, this callout might help. 
+Suppose you need to generate a URL for Google Cloud Storage resource, and expose it to someone else. You can do that with "signed URLs".  If you want to do this from within an Apigee Edge proxy, this callout might help.
 
-## What kind of Signing? 
+## What kind of Signing?
 
-The signing prescribed by Google is RSASSA with PKCS1.5 padding. 
+The signing prescribed by Google is RSASSA with PKCS1.5 padding.
 
 ## Using the Jar
 
@@ -69,4 +69,3 @@ This project and all the code contained within is Copyright 2017-2018 Google LLC
 ## Limitations
 
 ??
-

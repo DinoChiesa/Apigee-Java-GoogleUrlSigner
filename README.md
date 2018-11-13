@@ -104,19 +104,20 @@ You should see a signature upon output:
 
 ```
 HTTP/1.1 200 OK
-Date: Fri, 10 Aug 2018 21:22:45 GMT
+Date: Tue, 13 Nov 2018 02:40:42 GMT
 Content-Type: application/json
-Content-Length: 419
+Content-Length: 1032
 Connection: keep-alive
 
 {
-    "status" : "ok",
-    "signature" : "NVrNXYlV7jmxfiJFPKSWw7%2FXCMTmywCamQZiaE3boAZi5h3yY3ojriZxf3uVMN8DdXKRWF%2FyLa7%2FsfuQyq7qeJTYTvtR4z9mAdOgHNG1tJD1HqVol5F89GwCTBYWuSHwNeFCFIn8JoTZ%2Bc8K5UXhN7l2cMJmnvWGsm44%2B01HybRY9nqToeWPlZJs7lBLoBZRzTY5949DCRYTscuzKdx9ltJFmOF3EbRtJRLfvj0GkiJeiGHmQuflxilAriO2ZWpWXtyi46OM2jIX6iXcjQeqPra%2BByRE9xnF2ZmHrAHFv6NezbudnL%2FrZInLYVdbwRnlcdzE534BiLx2LHmFc08fYw%3D%3D",
-    "expiration" : "1533940417"
+  "status" : "ok",
+  "resource" : "/example-bucket/cat-pics/tabby.png",
+  "signature" : "BFrFC23qUdHaUJ471SUiD6u9dSZZ4yQhB2h3mpukgZvTlZ7a07X7aicEtygE%2FuP%2BJyQYsav%2FJxKMTN6aJpr8%2BEVkVnlqUPncm9Yck%2B9q5BHnn9UgMgHcsrIJee3LifADdMZRGcO0upZ84LQdBISO5O%2FuRTPInGMPjrrAXOJluz4W4SRLPDE3KIwD19SkhROonExj8WMXaujM64ngQhMPGyXb%2FbFUQx6bTeUAVEXzetuqCI73H%2BAOw%2BHyNL%2BXTG4pNI6FCPae4Z%2FNykbL%2Bk8qghQxsvOVnRhfYm5T%2BEzO0Op5yo6ruKKRGbuaHttnlFVOB86vgr0DO6iB%2BqDCHpyF8Q%3D%3D",
+  "expiration" : "1542077441",
+  "sample_url" : "https://storage.googleapis.com/example-bucket/cat-pics/tabby.png?GoogleAccessId=GOOGLE_ACCESS_STORAGE_ID&Expires=1542077441&Signature=BFrFC23qUdHaUJ471SUiD6u9dSZZ4yQhB2h3mpukgZvTlZ7a07X7aicEtygE%2FuP%2BJyQYsav%2FJxKMTN6aJpr8%2BEVkVnlqUPncm9Yck%2B9q5BHnn9UgMgHcsrIJee3LifADdMZRGcO0upZ84LQdBISO5O%2FuRTPInGMPjrrAXOJluz4W4SRLPDE3KIwD19SkhROonExj8WMXaujM64ngQhMPGyXb%2FbFUQx6bTeUAVEXzetuqCI73H%2BAOw%2BHyNL%2BXTG4pNI6FCPae4Z%2FNykbL%2Bk8qghQxsvOVnRhfYm5T%2BEzO0Op5yo6ruKKRGbuaHttnlFVOB86vgr0DO6iB%2BqDCHpyF8Q%3D%3D"
 }
 
 ```
-
 
 
 ## Status
