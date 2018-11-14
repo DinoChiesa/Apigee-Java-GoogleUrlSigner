@@ -1,6 +1,6 @@
 # Signed URL Generator
 
-This is a simple callout that geenrates a signed URL for Google Cloud Storage.
+This is a simple callout that generates a signed URL for Google Cloud Storage.
 
 Google Cloud Storage allows apps to create [signed URLs](https://cloud.google.com/storage/docs/access-control/signed-urls) with expiry, to allow third parties a time-limited access to a resource.
 
