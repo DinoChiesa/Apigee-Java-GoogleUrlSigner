@@ -1,4 +1,4 @@
-# Signed URL Generator
+# Edge Callout: Signed URL Generator
 
 This is a simple callout that generates a signed URL for Google Cloud Storage.
 
@@ -20,7 +20,7 @@ Then sign it with an RSA key, using a SHA256 Digest.
 That's what this callout does.
 
 [This page](https://cloud.google.com/storage/docs/access-control/create-signed-urls-program)
-says the app must construct the final URL to be shared with the aprtner app, like so:
+says the app must construct the final URL to be shared with the partner app, like so:
 
 ```
 FULL_URL =
