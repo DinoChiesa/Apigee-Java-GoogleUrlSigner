@@ -253,6 +253,7 @@ public class TestUrlSignCallout {
         props.put("verb","GET");
         props.put("expires-in","1d");
         props.put("resource","/foo/bar/bam");
+        props.put("access-id","ABCDEFG123456");
         props.put("private-key", "{my-private-key}");
         props.put("private-key-password", "Secret123");
 
@@ -272,7 +273,15 @@ public class TestUrlSignCallout {
         Object expiration = msgCtxt.getVariable("sign_expiration");
         Assert.assertNotNull(expiration, "expiration");
 
+        Object expirationISO = msgCtxt.getVariable("sign_expiration_ISO");
+        Assert.assertNotNull(expirationISO, "expiration_ISO");
+
+        Object signedUrl = msgCtxt.getVariable("sign_signedurl");
+        Assert.assertNotNull(signedUrl, "signedUrl");
+
+        System.out.println("signedUrl: " + signedUrl);
         System.out.println("b64: " + resultB64);
+        System.out.println("expiry: " + expirationISO);
         System.out.println("=========================================================");
     }
 

@@ -4,8 +4,11 @@
   "status" : "ok",
   "resource" : "{sign_resource}",
   "signature" : "{sign_output}",
-  "expiration" : "{sign_expiration}",
-  "sample_url" : "https://storage.googleapis.com{sign_resource}?GoogleAccessId=GOOGLE_ACCESS_STORAGE_ID&amp;Expires={sign_expiration}&amp;Signature={sign_output}"
+  "expiration" : {
+    "seconds" : {sign_expiration},
+    "ISO" : "{sign_expiration_ISO}"
+  },
+  "signedurl" : "{sign_signedurl}"
 }</Payload>
   </Set>
   <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
