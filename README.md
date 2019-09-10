@@ -1,10 +1,12 @@
 # Edge Callout: Signed URL Generator
 
-This is a simple callout that generates a signed URL for Google Cloud Storage.
+This is a simple callout that generates a V2 signed URL for Google Cloud Storage.
 
-Google Cloud Storage allows apps to create [signed URLs](https://cloud.google.com/storage/docs/access-control/signed-urls) with expiry, to allow third parties a time-limited access to a resource.
+Google Cloud Storage allows apps to create [signed URLs](https://cloud.google.com/storage/docs/access-control/signed-urls) with expiry, to allow third parties a time-limited access to a resource. As of September 2019, Google is now recommending the V4 signature method. This callout works with the [V2 signature method](https://cloud.google.com/storage/docs/access-control/signed-urls-v2).
 
-To use signed URLs, the app must build a string like this:
+(I have plans to extend  this URL signer so that works with V4.)
+
+To use V2 signed URLs, the app must build a string like this:
 
 ```
 StringToSign = HTTP_Verb + "\n" +
