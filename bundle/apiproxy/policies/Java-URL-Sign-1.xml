@@ -8,5 +8,5 @@
     <Property name='expires-in'>10m</Property>
   </Properties>
   <ClassName>com.google.apigee.edgecallouts.rsa.SignedUrlCallout</ClassName>
-  <ResourceURL>java://edge-google-signed-url-1.0.6.jar</ResourceURL>
+  <ResourceURL>java://edge-google-signed-url-20191023.jar</ResourceURL>
 </JavaCallout>

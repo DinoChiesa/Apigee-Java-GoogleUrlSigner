@@ -6,6 +6,7 @@
   "signature" : "{sign_output}",
   "expiration" : {
     "seconds" : {sign_expiration},
+    "relative" : {sign_duration},
     "ISO" : "{sign_expiration_ISO}"
   },
   "signedurl" : "{sign_signedurl}"

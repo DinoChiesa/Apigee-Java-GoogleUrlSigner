@@ -125,6 +125,36 @@ public class TestUrlSignCallout {
 "1MYSgvlF9eUm6e21FySl6H1kgw==\n"+
         "-----END ENCRYPTED PRIVATE KEY-----\n";
 
+    private static final String privateKey2 =
+            "-----BEGIN PRIVATE KEY-----\n"
+                + "MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCokDY3Bd6pdpVo\n"
+                + "c7SaQoOlN2E8KH/zSAfY66fgMk5iNiC90xEnzfEHofCbzT1Pn3euRf0/A6NQNDuQ\n"
+                + "m8fRotqrFv4WutMNMVxdlclnrl1xr2VgBHGAQDBqw8iS8F2vSc/ZbZVCA8q2TBK1\n"
+                + "mKcyImH8lKVcLPtQsMZWpbwXKSUZpUiTGteEeyMf6GEnwqn7OMWx92xOQZtqpeP+\n"
+                + "p7F4dQFwXoZsd7vGFouiP8/bgPuYUcHe5fHi83eiE/5mJPXLlfx8ItW7lJIL68MU\n"
+                + "dHZnkjbrJOVw1HAq3biU3KkawTMzkpkgsmUSvcGcADWqRxJfvBlAMendc4ckdpHq\n"
+                + "XFqu9iWZAgMBAAECggEBAICZXTNHQCOLe9svgxa5LhRLFty9jTg+uPXue6oY1yIo\n"
+                + "Z3xK3ei/PmbzTkyfHWp0n+sOLHH5xYu3/cWKg7zVAPzMUtdmewOyp+QiFYELTvEf\n"
+                + "vjityyXsUsPxUEGCLgdASdl4uAmgOPQxP4jZyJ0ADD+V7D5Rdv6NjxOl58THuC1C\n"
+                + "ZUq5wyJpm9U+MeUWCYJHWTh3Nj5BVdokYA4G0SeAMuQsGAWXQTR1VTrFEPEouX8a\n"
+                + "mCTMYHQP5mfrPD+gAYKGPrjwVyZZI8CnqfxlNhkSt3etuXbHjHHzPb6mPNjOJKgU\n"
+                + "5xS5I737wKR1kF0NM14WTeCvSzFNAgo9E9yfVTxIXjECgYEA3rgIgUoA3lk8lsJ/\n"
+                + "uOjYRMyDgiYVJ3GMyZ7ll+LqkWRWhEx69NiNeMED32oqKMxBvvM+Q/wgoC5rHJTM\n"
+                + "Nd1jbzlqGscJqlW66x8r5bXY9iwhJhiNpNlj+FIPaXktivVG741qTLWnsM5Rrv8L\n"
+                + "7leZjEsWNJWAw90FhJTaZ7A3dp0CgYEAwcB+LqjNQQdmNSyBaLTb6Shr6IgOCf/1\n"
+                + "NHlqatFsdmy8F2+5+ePExpb7HCbiY5Gi96JBczZ5qEK/yzAIC8WWCLxvtPn/x/vE\n"
+                + "ByO7ZXa4dN80KENta0sWWdV3mNFoqU1TR8Cno5a8a3A705CFjI6kSLDxhOSeBfuF\n"
+                + "JzErU/oXvC0CgYAF6AeBtj6zptYugVX1x2cE3A+Ywf3Jn/9F0YrxLjleRbTtqUGR\n"
+                + "gLSvwR6jLCOWFWSg9b5u+x66YMDCb0fDHe3nIzSnJSQiekeMuLTnUJ1CWgU/B2Oq\n"
+                + "PYGjMjnqaCZHCx4oeC2bfy3FSJNt+qGMXpJZ4BvkpRpXF2NwEqqAGXI/GQKBgDam\n"
+                + "y3Dx4GO1aJkbIq2cRmOwKTAAIKWlc08H6IKU7BlDdpLNyxG3s6uortA0D6uyStu7\n"
+                + "AucyuIJDwcHYnIxlgXqZXJEZ65JHa/XvmE54fHNK+nVY/6ZCGd3hHskWWIVY8GLO\n"
+                + "7vpv7FoJ4HY+z8zj92chsh6gNgrN9bMmZWhcpRFJAoGAMih1rmZx8PBwrnkMvwVB\n"
+                + "05Ar+LdS/CqG9egQJxtRSIzfdyc9CrZ6b7Sj+VWjieT/o78ODalbXQETia6bYv5b\n"
+                + "KWHu/XSeFDzGfCsZiGWECY0rpEKjvI8OBYljTKmB/14Iz51m8jgZRvTaoauUUpZi\n"
+                + "w+4PGMrpoKCGFBE4ucT7AvY=\n"
+      + "-----END PRIVATE KEY-----\n";
+
     @Test
     public void test_EmptyVerb() throws Exception {
         String expectedError = "verb resolves to an empty string";
@@ -272,6 +302,51 @@ public class TestUrlSignCallout {
 
         Object expiration = msgCtxt.getVariable("sign_expiration");
         Assert.assertNotNull(expiration, "expiration");
+
+        Object duration = msgCtxt.getVariable("sign_duration");
+        Assert.assertNotNull(duration, "duration");
+
+        Object expirationISO = msgCtxt.getVariable("sign_expiration_ISO");
+        Assert.assertNotNull(expirationISO, "expiration_ISO");
+
+        Object signedUrl = msgCtxt.getVariable("sign_signedurl");
+        Assert.assertNotNull(signedUrl, "signedUrl");
+
+        System.out.println("signedUrl: " + signedUrl);
+        System.out.println("b64: " + resultB64);
+        System.out.println("expiry: " + expirationISO);
+        System.out.println("=========================================================");
+    }
+
+    @Test
+    public void test_GoodResult2() throws Exception {
+        msgCtxt.setVariable("my-private-key", privateKey2);
+
+        Map<String,String> props = new HashMap<String,String>();
+        props.put("verb","GET");
+        props.put("expires-in","1d");
+        props.put("resource","/foo/bar/bam");
+        props.put("access-id","ABCDEFG123456");
+        props.put("private-key", "{my-private-key}");
+
+        SignedUrlCallout callout = new SignedUrlCallout(props);
+
+        // execute and retrieve output
+        ExecutionResult actualResult = callout.execute(msgCtxt, exeCtxt);
+        Assert.assertEquals(actualResult, ExecutionResult.SUCCESS, "result not as expected");
+        Object errorOutput = msgCtxt.getVariable("sign_error");
+        Assert.assertNull(errorOutput, "errorOutput");
+        Object stacktrace =  msgCtxt.getVariable("sign_stacktrace");
+        Assert.assertNull(stacktrace, "BogusPrivateKey() stacktrace");
+
+        Object resultB64 = msgCtxt.getVariable("sign_output");
+        Assert.assertNotNull(resultB64, "resultB64");
+
+        Object expiration = msgCtxt.getVariable("sign_expiration");
+        Assert.assertNotNull(expiration, "expiration");
+
+        Object duration = msgCtxt.getVariable("sign_duration");
+        Assert.assertNotNull(duration, "duration");
 
         Object expirationISO = msgCtxt.getVariable("sign_expiration_ISO");
         Assert.assertNotNull(expirationISO, "expiration_ISO");

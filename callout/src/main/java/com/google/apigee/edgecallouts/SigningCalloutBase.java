@@ -28,9 +28,11 @@ public abstract class SigningCalloutBase {
   private static final String variableReferencePatternString = "(.*?)\\{([^\\{\\} ]+?)\\}(.*?)";
   private static final Pattern variableReferencePattern =
       Pattern.compile(variableReferencePatternString);
+  private static final String commonError = "^(.+?)[:;] (.+)$";
+  private static final Pattern commonErrorPattern = Pattern.compile(commonError);
 
   protected static final String SIGNED_URL_SPEC =
-    "https://storage.googleapis.com{sign_resource}?GoogleAccessId={sign_accessid}&Expires={sign_expiration}&Signature={sign_output}";
+      "https://storage.googleapis.com{sign_resource}?GoogleAccessId={sign_accessid}&Expires={sign_expiration}&Signature={sign_output}";
 
   public SigningCalloutBase(Map properties) {
     this.properties = properties;
@@ -49,7 +51,7 @@ public abstract class SigningCalloutBase {
 
   protected String getAccessId(MessageContext msgCtxt) throws Exception {
     String accessId = getSimpleOptionalProperty("access-id", msgCtxt);
-    return (accessId == null) ? "GOOGLE_ACCESS_STORAGE_ID": accessId;
+    return (accessId == null) ? "GOOGLE_ACCESS_STORAGE_ID" : accessId;
   }
 
   protected String getSimpleOptionalProperty(String propName, MessageContext msgCtxt)
@@ -105,13 +107,12 @@ public abstract class SigningCalloutBase {
     return sb.toString();
   }
 
-  protected static void setExceptionVariables(Exception exc1, MessageContext msgCtxt) {
-    String error = exc1.toString();
+  protected void setExceptionVariables(Exception exc1, MessageContext msgCtxt) {
+    String error = exc1.toString().replaceAll("\n", " ");
     msgCtxt.setVariable(varName("exception"), error);
-    System.out.printf("Exception: %s\n", error);
-    int ch = error.lastIndexOf(':');
-    if (ch >= 0) {
-      msgCtxt.setVariable(varName("error"), error.substring(ch + 2).trim());
+    Matcher matcher = commonErrorPattern.matcher(error);
+    if (matcher.matches()) {
+      msgCtxt.setVariable(varName("error"), matcher.group(2));
     } else {
       msgCtxt.setVariable(varName("error"), error);
     }

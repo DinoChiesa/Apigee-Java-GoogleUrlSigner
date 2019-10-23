@@ -8,7 +8,6 @@ import com.apigee.flow.message.MessageContext;
 import com.google.apigee.edgecallouts.SigningCalloutBase;
 import java.io.IOException;
 import java.io.StringReader;
-import java.math.BigInteger;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
@@ -16,9 +15,11 @@ import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.interfaces.RSAPrivateCrtKey;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPublicKeySpec;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -64,12 +65,13 @@ public class SignedUrlCallout extends SigningCalloutBase implements Execution {
 
   private static KeyPair produceKeyPair(PrivateKey privateKey)
       throws InvalidKeySpecException, NoSuchAlgorithmException {
-    BigInteger publicExponent = BigInteger.valueOf(65537); // assumption
+    RSAPrivateCrtKey privCrtKey = (RSAPrivateCrtKey) privateKey;
     PublicKey publicKey =
         KeyFactory.getInstance("RSA")
             .generatePublic(
                 new RSAPublicKeySpec(
-                    ((RSAPrivateKey) privateKey).getPrivateExponent(), publicExponent));
+                    ((RSAPrivateKey) privateKey).getPrivateExponent(),
+                    privCrtKey.getPublicExponent()));
     return new KeyPair(publicKey, privateKey);
   }
 
@@ -81,7 +83,7 @@ public class SignedUrlCallout extends SigningCalloutBase implements Execution {
     Object o = pr.readObject();
 
     if (o instanceof PrivateKeyInfo) {
-      // produced by openssl genpkey without encryption
+      // eg, "openssl genpkey  -algorithm rsa -pkeyopt rsa_keygen_bits:2048 -out keypair.pem"
       PrivateKey privateKey = converter.getPrivateKey((PrivateKeyInfo) o);
       return produceKeyPair(privateKey);
     }
@@ -114,8 +116,8 @@ public class SignedUrlCallout extends SigningCalloutBase implements Execution {
     }
 
     if (o instanceof PEMKeyPair) {
-      PEMKeyPair unencryptedKeyPair = (PEMKeyPair) o;
-      return converter.getKeyPair(unencryptedKeyPair);
+      // eg, "openssl genrsa -out keypair-rsa-2048-unencrypted.pem 2048"
+      return converter.getKeyPair((PEMKeyPair) o);
     }
 
     throw new Exception("unknown object type when decoding private key");
@@ -171,10 +173,13 @@ public class SignedUrlCallout extends SigningCalloutBase implements Execution {
             + resource;
     msgCtxt.setVariable(varName("resource"), resource);
     msgCtxt.setVariable(varName("verb"), verb);
-    msgCtxt.setVariable(varName("expiration"), expirationInSeconds + "");
+    msgCtxt.setVariable(varName("expiration"), Long.toString(expirationInSeconds));
+    Instant expiryInstant = Instant.ofEpochSecond(expirationInSeconds);
+    Instant now = Instant.now();
+    msgCtxt.setVariable(varName("duration"), Long.toString(Duration.between(now, expiryInstant).getSeconds()));
     msgCtxt.setVariable(
         varName("expiration_ISO"),
-        ZonedDateTime.ofInstant(Instant.ofEpochSecond(expirationInSeconds), ZoneOffset.UTC)
+        ZonedDateTime.ofInstant(expiryInstant, ZoneOffset.UTC)
             .format(DateTimeFormatter.ISO_INSTANT));
     msgCtxt.setVariable(varName("signing_string"), stringToSign);
     return stringToSign;

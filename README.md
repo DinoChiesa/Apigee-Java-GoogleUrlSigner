@@ -4,7 +4,7 @@ This is a simple callout that generates a V2 signed URL for Google Cloud Storage
 
 Google Cloud Storage allows apps to create [signed URLs](https://cloud.google.com/storage/docs/access-control/signed-urls) with expiry, to allow third parties a time-limited access to a resource. As of September 2019, Google is now recommending the V4 signature method. This callout works with the [V2 signature method](https://cloud.google.com/storage/docs/access-control/signed-urls-v2).
 
-(I have plans to extend  this URL signer so that works with V4.)
+(I have plans to extend  this URL signer so that it works with V4.)
 
 To use V2 signed URLs, the app must build a string like this:
 
@@ -61,7 +61,7 @@ Configure the policy like this:
     <Property name='expires-in'>10m</Property>
   </Properties>
   <ClassName>com.google.apigee.edgecallouts.rsa.SignedUrlCallout</ClassName>
-  <ResourceURL>java://edge-google-signed-url-1.0.6.jar</ResourceURL>
+  <ResourceURL>java://edge-google-signed-url-20191023.jar</ResourceURL>
 </JavaCallout>
 ```
 
@@ -91,6 +91,7 @@ The output of the callout is a set of context variables:
 | sign_output           | the base64-encoded signature value                                                 |
 | sign_output_unencoded | the unencoded signature value                                                      |
 | sign_expiration       | The expiration value in seconds. Computed from NOW + expires-in. You need this for building the URL. |
+| sign_duration         | The duration, (expiration time - now), in seconds. For diagnostic information. |
 | sign_expiration_ISO   | An ISO-formatted string for the expiration. For diagnostics and human consumption. |
 
 
