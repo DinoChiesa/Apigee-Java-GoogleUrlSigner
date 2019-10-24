@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.google.apigee.edgecallouts</groupId>
   <artifactId>edge-google-signed-url</artifactId>
-  <version>20191023</version>
+  <version>20191024</version>
   <name>EdgeJavaGoogleSignedUrl</name>
   <url>http://maven.apache.org</url>
   <packaging>jar</packaging>

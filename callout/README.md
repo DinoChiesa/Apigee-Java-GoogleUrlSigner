@@ -3,7 +3,7 @@
 This directory contains the Java source code and Java jars required to compile a Java
 callout for Apigee Edge that produces a signed URL, according to [this specification](https://cloud.google.com/storage/docs/access-control/signed-urls).
 
-You do not need to build this Java code in order to use the JWT Generator or Verifier
+You do not need to build this Java code in order to use Signature generator
 callout.  The callout will work, with the pre-built JAR file.  Find the pre-built JAR
 file in (the API Proxy subdirectory)[../apiproxy/resources/java].
 
@@ -37,7 +37,7 @@ To use it:
    ```
 
 2. Deploy your API Proxy, using
-   [pushapi](https://github.com/carloseberhardt/apiploy), [importAndDeploy.js](https://github.com/DinoChiesa/apigee-edge-js/blob/master/examples/importAndDeploy.js),
+[importAndDeploy.js](https://github.com/DinoChiesa/apigee-edge-js/blob/master/examples/importAndDeploy.js),
    [the Import-EdgeApi cmdlet for Powershell](https://github.com/DinoChiesa/Edge-Powershell-Admin/blob/develop/PSApigeeEdge/Public/Import-EdgeApi.ps1),
    or another similar tool.
 
@@ -50,10 +50,6 @@ Jars available in Edge:
  - Apigee Edge expressions v1.0
  - Apigee Edge message-flow v1.0
 
-Jars not available in Edge:
- - Apache commons lang3
- - Bouncy Castle 1.54
-
 Maven will download all of these dependencies for you. If for some
 reason you want to download these dependencies manually, you can visit
 <a href='https://mvnrepository.com'>https://mvnrepository.com</a> .
@@ -63,7 +59,7 @@ reason you want to download these dependencies manually, you can visit
 
 ## License
 
-This project and all the code contained within is Copyright 2017-2018 Google LLC, and is licensed under the [Apache 2.0 Source license](LICENSE).
+This project and all the code contained within is Copyright 2017-2019 Google LLC, and is licensed under the [Apache 2.0 Source license](LICENSE).
 
 
 ## Limitations
