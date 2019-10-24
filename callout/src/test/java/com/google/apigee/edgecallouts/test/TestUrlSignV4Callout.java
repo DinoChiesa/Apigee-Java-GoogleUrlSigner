@@ -16,44 +16,36 @@
 package com.google.apigee.edgecallouts.test;
 
 import com.apigee.flow.execution.ExecutionResult;
-import com.google.apigee.edgecallouts.rsa.V2SignedUrlCallout;
+import com.google.apigee.edgecallouts.rsa.V4SignedUrlCallout;
 import java.util.HashMap;
 import java.util.Map;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-public class TestUrlSignV2Callout extends TestSignBase {
+public class TestUrlSignV4Callout extends TestSignBase {
+
+  private String serviceAccountKey1 = "{\n"
++"  \"type\": \"service_account\",\n"
++"  \"project_id\": \"project-apigee\",\n"
++"  \"private_key_id\": \"0bb2933e52e4dffa0958ba53ef9226c2a573add1\",\n"
+    +"  \"private_key\": \"" + privateKey2.replaceAll("\n", "\\\\n") + "\",\n"
++"  \"client_email\": \"account-223456789@project-apigee.iam.gserviceaccount.com\",\n"
++"  \"client_id\": \"112345888385643765817\",\n"
++"  \"auth_uri\": \"https://accounts.google.com/o/oauth2/auth\",\n"
++"  \"token_uri\": \"https://accounts.google.com/o/oauth2/token\",\n"
++"  \"auth_provider_x509_cert_url\": \"https://www.googleapis.com/oauth2/v1/certs\",\n"
++"  \"client_x509_cert_url\": \"https://www.googleapis.com/robot/v1/metadata/x509/account-223456789%40project-apigee.iam.gserviceaccount.com\"\n"
++"}\n";
 
   @Test
-  public void test_EmptyVerb() throws Exception {
-    String expectedError = "verb resolves to an empty string";
-    Map<String, String> props = new HashMap<String, String>();
-    props.put("private-key", "not-a-private-key");
-
-    V2SignedUrlCallout callout = new V2SignedUrlCallout(props);
-
-    // execute and retrieve output
-    ExecutionResult actualResult = callout.execute(msgCtxt, exeCtxt);
-    Assert.assertEquals(actualResult, ExecutionResult.ABORT, "result not as expected");
-    Object errorOutput = msgCtxt.getVariable("sign_error");
-    Assert.assertNotNull(errorOutput, "errorOutput");
-    // System.out.printf("expected error: %s\n", errorOutput);
-    Assert.assertEquals(errorOutput, expectedError, "error not as expected");
-    Object stacktrace = msgCtxt.getVariable("sign_stacktrace");
-    Assert.assertNull(stacktrace, "EmptyVerb() stacktrace");
-  }
-
-  @Test
-  public void test_MissingExpiresIn() throws Exception {
-    String expectedError = "the configuration must specify one of expiry or expires-in";
-    // msgCtxt.setVariable("variable-name", variableValue);
-
+  public void emptyServiceAccountKey() throws Exception {
+    String expectedError = "service-account-key resolves to an empty string";
     Map<String, String> props = new HashMap<String, String>();
     props.put("verb", "GET");
-    // props.put("expires-in","1d");
-    props.put("private-key", "not-a-private-key");
+    props.put("expires-in", "10m");
+    props.put("resource", "/foo/bar");
 
-    V2SignedUrlCallout callout = new V2SignedUrlCallout(props);
+    V4SignedUrlCallout callout = new V4SignedUrlCallout(props);
 
     // execute and retrieve output
     ExecutionResult actualResult = callout.execute(msgCtxt, exeCtxt);
@@ -63,44 +55,38 @@ public class TestUrlSignV2Callout extends TestSignBase {
     // System.out.printf("expected error: %s\n", errorOutput);
     Assert.assertEquals(errorOutput, expectedError, "error not as expected");
     Object stacktrace = msgCtxt.getVariable("sign_stacktrace");
-    Assert.assertNull(stacktrace, "MissingExpiresIn() stacktrace");
+    Assert.assertNull(stacktrace, "stacktrace");
   }
 
   @Test
-  public void test_MissingResource() throws Exception {
-    String expectedError = "resource resolves to an empty string";
+  public void badServiceAccountKey1() throws Exception {
     Map<String, String> props = new HashMap<String, String>();
+    props.put("service-account-key", "not-json");
     props.put("verb", "GET");
-    props.put("expires-in", "1d");
-    // props.put("resource","/foo/bar/bam");
-    props.put("private-key", "not-a-private-key");
+    props.put("expires-in", "10m");
+    props.put("resource", "/foo/bar");
 
-    V2SignedUrlCallout callout = new V2SignedUrlCallout(props);
+    V4SignedUrlCallout callout = new V4SignedUrlCallout(props);
 
     // execute and retrieve output
     ExecutionResult actualResult = callout.execute(msgCtxt, exeCtxt);
     Assert.assertEquals(actualResult, ExecutionResult.ABORT, "result not as expected");
     Object errorOutput = msgCtxt.getVariable("sign_error");
     Assert.assertNotNull(errorOutput, "errorOutput");
-    // System.out.printf("expected error: %s\n", errorOutput);
-    Assert.assertEquals(errorOutput, expectedError, "error not as expected");
     Object stacktrace = msgCtxt.getVariable("sign_stacktrace");
-    Assert.assertNull(stacktrace, "MissingResource() stacktrace");
+    Assert.assertNotNull(stacktrace, "stacktrace");
   }
 
   @Test
-  public void test_MissingPrivateKey() throws Exception {
-    String expectedError = "private-key resolves to an empty string";
-    // msgCtxt.setVariable("my-private-key", privateKey1);
-
+  public void badServiceAccountKey2() throws Exception {
+    String expectedError = "the service account key data is invalid";
     Map<String, String> props = new HashMap<String, String>();
+    props.put("service-account-key", "{\"foo\" : \"bar\"}");
     props.put("verb", "GET");
-    props.put("expires-in", "1d");
-    props.put("resource", "/foo/bar/bam");
-    // props.put("private-key", "{my-private-key}");
-    // props.put("private-key-password", "Secret123");
+    props.put("expires-in", "10m");
+    props.put("resource", "/foo/bar");
 
-    V2SignedUrlCallout callout = new V2SignedUrlCallout(props);
+    V4SignedUrlCallout callout = new V4SignedUrlCallout(props);
 
     // execute and retrieve output
     ExecutionResult actualResult = callout.execute(msgCtxt, exeCtxt);
@@ -110,47 +96,83 @@ public class TestUrlSignV2Callout extends TestSignBase {
     // System.out.printf("expected error: %s\n", errorOutput);
     Assert.assertEquals(errorOutput, expectedError, "error not as expected");
     Object stacktrace = msgCtxt.getVariable("sign_stacktrace");
-    Assert.assertNull(stacktrace, "MissingPrivateKey() stacktrace");
+    Assert.assertNull(stacktrace, "stacktrace");
   }
 
   @Test
-  public void test_BogusPrivateKey() throws Exception {
+  public void badServiceAccountKey3() throws Exception {
+    String expectedError = "the service account key data is missing the client_email";
+    Map<String, String> props = new HashMap<String, String>();
+    props.put("service-account-key", "{\"type\" : \"service_account\"}");
+    props.put("verb", "GET");
+    props.put("expires-in", "10m");
+    props.put("resource", "/foo/bar");
+
+    V4SignedUrlCallout callout = new V4SignedUrlCallout(props);
+
+    // execute and retrieve output
+    ExecutionResult actualResult = callout.execute(msgCtxt, exeCtxt);
+    Assert.assertEquals(actualResult, ExecutionResult.ABORT, "result not as expected");
+    Object errorOutput = msgCtxt.getVariable("sign_error");
+    Assert.assertNotNull(errorOutput, "errorOutput");
+    // System.out.printf("expected error: %s\n", errorOutput);
+    Assert.assertEquals(errorOutput, expectedError, "error not as expected");
+    Object stacktrace = msgCtxt.getVariable("sign_stacktrace");
+    Assert.assertNull(stacktrace, "stacktrace");
+  }
+
+  @Test
+  public void badServiceAccountKey4() throws Exception {
+    String expectedError = "the service account key data is missing the private_key";
+    Map<String, String> props = new HashMap<String, String>();
+    props.put("service-account-key", "{\"type\" : \"service_account\", \"client_email\": \"foo\"}");
+    props.put("verb", "GET");
+    props.put("expires-in", "10m");
+    props.put("resource", "/foo/bar");
+
+    V4SignedUrlCallout callout = new V4SignedUrlCallout(props);
+
+    // execute and retrieve output
+    ExecutionResult actualResult = callout.execute(msgCtxt, exeCtxt);
+    Assert.assertEquals(actualResult, ExecutionResult.ABORT, "result not as expected");
+    Object errorOutput = msgCtxt.getVariable("sign_error");
+    Assert.assertNotNull(errorOutput, "errorOutput");
+    // System.out.printf("expected error: %s\n", errorOutput);
+    Assert.assertEquals(errorOutput, expectedError, "error not as expected");
+    Object stacktrace = msgCtxt.getVariable("sign_stacktrace");
+    Assert.assertNull(stacktrace, "stacktrace");
+  }
+
+  @Test
+  public void badPrivateKey() throws Exception {
     String expectedError = "unknown object type when decoding private key";
-    // msgCtxt.setVariable("my-private-key", privateKey1);
-
     Map<String, String> props = new HashMap<String, String>();
+    props.put("service-account-key", "{\"type\" : \"service_account\", \"client_email\": \"foo\", \"private_key\" : \"this is not a private key\"}");
     props.put("verb", "GET");
-    props.put("expires-in", "1d");
-    props.put("resource", "/foo/bar/bam");
-    props.put("private-key", "this-isnot-a-real-private-key");
-    props.put("private-key-password", "Secret123");
+    props.put("expires-in", "10m");
+    props.put("resource", "/foo/bar");
 
-    V2SignedUrlCallout callout = new V2SignedUrlCallout(props);
+    V4SignedUrlCallout callout = new V4SignedUrlCallout(props);
 
     // execute and retrieve output
     ExecutionResult actualResult = callout.execute(msgCtxt, exeCtxt);
     Assert.assertEquals(actualResult, ExecutionResult.ABORT, "result not as expected");
     Object errorOutput = msgCtxt.getVariable("sign_error");
     Assert.assertNotNull(errorOutput, "errorOutput");
-    // System.out.printf("expected error: %s\n", errorOutput);
     Assert.assertEquals(errorOutput, expectedError, "error not as expected");
     Object stacktrace = msgCtxt.getVariable("sign_stacktrace");
-    Assert.assertNotNull(stacktrace, "BogusPrivateKey() stacktrace");
+    Assert.assertNotNull(stacktrace, "stacktrace");
   }
 
   @Test
-  public void test_GoodResult() throws Exception {
-    msgCtxt.setVariable("my-private-key", privateKey1);
-
+  public void goodResult1() throws Exception {
     Map<String, String> props = new HashMap<String, String>();
+    props.put("service-account-key", serviceAccountKey1);
     props.put("verb", "GET");
-    props.put("expires-in", "1d");
-    props.put("resource", "/foo/bar/bam");
-    props.put("access-id", "ABCDEFG123456");
-    props.put("private-key", "{my-private-key}");
-    props.put("private-key-password", "Secret123");
+    props.put("expires-in", "10m");
+    props.put("resource", "/foo/bar");
 
-    V2SignedUrlCallout callout = new V2SignedUrlCallout(props);
+    V4SignedUrlCallout callout = new V4SignedUrlCallout(props);
 
     // execute and retrieve output
     ExecutionResult actualResult = callout.execute(msgCtxt, exeCtxt);
@@ -158,7 +180,7 @@ public class TestUrlSignV2Callout extends TestSignBase {
     Object errorOutput = msgCtxt.getVariable("sign_error");
     Assert.assertNull(errorOutput, "errorOutput");
     Object stacktrace = msgCtxt.getVariable("sign_stacktrace");
-    Assert.assertNull(stacktrace, "BogusPrivateKey() stacktrace");
+    Assert.assertNull(stacktrace, "stacktrace");
 
     Object signature = msgCtxt.getVariable("sign_signature");
     Assert.assertNotNull(signature, "signature");
@@ -168,7 +190,7 @@ public class TestUrlSignV2Callout extends TestSignBase {
 
     Object duration = msgCtxt.getVariable("sign_duration");
     Assert.assertNotNull(duration, "duration");
-    Assert.assertTrue(Integer.parseInt((String)duration) <= 86400);
+    Assert.assertTrue(Integer.parseInt((String)duration) <= 600);
 
     Object expirationISO = msgCtxt.getVariable("sign_expiration_ISO");
     Assert.assertNotNull(expirationISO, "expiration_ISO");
@@ -177,51 +199,7 @@ public class TestUrlSignV2Callout extends TestSignBase {
     Assert.assertNotNull(signedUrl, "signedUrl");
 
     System.out.println("signedUrl: " + signedUrl);
-    System.out.println("b64: " + signature);
-    System.out.println("expiry: " + expirationISO);
-    System.out.println("duration: " + duration);
-    System.out.println("=========================================================");
-  }
-
-  @Test
-  public void test_GoodResult2() throws Exception {
-    msgCtxt.setVariable("my-private-key", privateKey2);
-
-    Map<String, String> props = new HashMap<String, String>();
-    props.put("verb", "GET");
-    props.put("expires-in", "1m");
-    props.put("resource", "/foo/bar/bam");
-    props.put("access-id", "ABCDEFG123456");
-    props.put("private-key", "{my-private-key}");
-
-    V2SignedUrlCallout callout = new V2SignedUrlCallout(props);
-
-    // execute and retrieve output
-    ExecutionResult actualResult = callout.execute(msgCtxt, exeCtxt);
-    Assert.assertEquals(actualResult, ExecutionResult.SUCCESS, "result not as expected");
-    Object errorOutput = msgCtxt.getVariable("sign_error");
-    Assert.assertNull(errorOutput, "errorOutput");
-    Object stacktrace = msgCtxt.getVariable("sign_stacktrace");
-    Assert.assertNull(stacktrace, "BogusPrivateKey() stacktrace");
-
-    Object signature = msgCtxt.getVariable("sign_signature");
-    Assert.assertNotNull(signature, "signature");
-
-    Object expiration = msgCtxt.getVariable("sign_expiration");
-    Assert.assertNotNull(expiration, "expiration");
-
-    Object duration = msgCtxt.getVariable("sign_duration");
-    Assert.assertNotNull(duration, "duration");
-    Assert.assertTrue(Integer.parseInt((String)duration) <= 60);
-
-    Object expirationISO = msgCtxt.getVariable("sign_expiration_ISO");
-    Assert.assertNotNull(expirationISO, "expiration_ISO");
-
-    Object signedUrl = msgCtxt.getVariable("sign_signedurl");
-    Assert.assertNotNull(signedUrl, "signedUrl");
-
-    System.out.println("signedUrl: " + signedUrl);
-    System.out.println("b64: " + signature);
+    System.out.println("signature: " + signature);
     System.out.println("expiry: " + expirationISO);
     System.out.println("duration: " + duration);
     System.out.println("=========================================================");

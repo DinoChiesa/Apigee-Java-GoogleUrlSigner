@@ -22,11 +22,6 @@ import com.apigee.flow.execution.spi.Execution;
 import com.apigee.flow.message.MessageContext;
 import java.net.URLEncoder;
 import java.security.KeyPair;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import org.bouncycastle.util.encoders.Base64;
 
@@ -67,16 +62,7 @@ public class V2SignedUrlCallout extends SigningCalloutBase implements Execution 
             + resource;
     msgCtxt.setVariable(varName("resource"), resource);
     msgCtxt.setVariable(varName("verb"), verb);
-    msgCtxt.setVariable(varName("expiration"), Long.toString(expirationInSeconds));
-    Instant expiryInstant = Instant.ofEpochSecond(expirationInSeconds);
-    Instant now = Instant.now();
-    msgCtxt.setVariable(
-        varName("duration"), Long.toString(Duration.between(now, expiryInstant).getSeconds()));
-    msgCtxt.setVariable(
-        varName("expiration_ISO"),
-        ZonedDateTime.ofInstant(expiryInstant, ZoneOffset.UTC)
-            .format(DateTimeFormatter.ISO_INSTANT));
-
+    setExpirationVariables(expirationInSeconds, msgCtxt);
     msgCtxt.setVariable(varName("signing_string"), stringToSign);
     return stringToSign;
   }

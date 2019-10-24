@@ -31,6 +31,11 @@ import java.security.interfaces.RSAPrivateCrtKey;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPublicKeySpec;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -150,16 +155,33 @@ public abstract class SigningCalloutBase {
   }
 
   protected long getExpiry(final MessageContext msgCtxt) throws Exception {
+    return getExpiry(msgCtxt, 0);
+  }
+
+  protected long getExpiry(final MessageContext msgCtxt, long max) throws Exception {
     String expiresInExpression = getSimpleOptionalProperty("expires-in", msgCtxt);
-    if (expiresInExpression == null || expiresInExpression.equals("")) {
+    long expiryEpochSeconds = 0L;
+    long durationSeconds = 0L;
+    Instant now = Instant.now();
+    if (expiresInExpression != null && !expiresInExpression.equals("")) {
+      durationSeconds = TimeResolver.resolveExpression(expiresInExpression);
+      expiryEpochSeconds = now.plusSeconds(durationSeconds).getEpochSecond();
+    } else {
       String expiry = getSimpleOptionalProperty("expiry", msgCtxt);
       if (expiry == null || expiry.equals(""))
         throw new IllegalStateException(
             "the configuration must specify one of expiry or expires-in");
-      return Long.valueOf(expiry);
+      expiryEpochSeconds = Long.valueOf(expiry);
+      durationSeconds = expiryEpochSeconds - now.getEpochSecond();
     }
-    long expirationInSeconds = TimeResolver.getExpiryDate(expiresInExpression).getTime() / 1000;
-    return expirationInSeconds;
+
+    if (max > 0 && durationSeconds > max)
+      throw new IllegalStateException("the configured expiry exceeds the permitted maximum");
+
+    if (expiryEpochSeconds <= 0)
+      throw new IllegalStateException("the configured expiry must be positive");
+
+    return expiryEpochSeconds;
   }
 
   protected boolean getDebug() {
@@ -242,5 +264,17 @@ public abstract class SigningCalloutBase {
     StringWriter sw = new StringWriter();
     t.printStackTrace(new PrintWriter(sw));
     return sw.toString();
+  }
+
+  protected void setExpirationVariables(long expiry, final MessageContext msgCtxt) {
+    msgCtxt.setVariable(varName("expiration"), Long.toString(expiry));
+    Instant expiryInstant = Instant.ofEpochSecond(expiry);
+    Instant now = Instant.now();
+    msgCtxt.setVariable(
+        varName("duration"), Long.toString(Duration.between(now, expiryInstant).getSeconds()));
+    msgCtxt.setVariable(
+        varName("expiration_ISO"),
+        ZonedDateTime.ofInstant(expiryInstant, ZoneOffset.UTC)
+            .format(DateTimeFormatter.ISO_INSTANT));
   }
 }

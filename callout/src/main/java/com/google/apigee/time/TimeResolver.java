@@ -15,9 +15,8 @@
 
 package com.google.apigee.time;
 
-import java.util.Calendar;
+import java.time.Instant;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -31,24 +30,29 @@ public class TimeResolver {
 
   static {
     Map<String, Long> m1 = new HashMap<String, Long>();
-    m1.put("s", 1L * 1000);
-    m1.put("m", 60L * 1000);
-    m1.put("h", 60L * 60 * 1000);
-    m1.put("d", 60L * 60 * 24 * 1000);
-    m1.put("w", 60L * 60 * 24 * 7 * 1000);
-    // m1.put("y", 60*60*24*365*1000);
+    m1.put("s", 1L);
+    m1.put("m", 60L);
+    m1.put("h", 60L * 60);
+    m1.put("d", 60L * 60 * 24);
+    m1.put("w", 60L * 60 * 24 * 7);
     timeMultipliers = Collections.unmodifiableMap(m1);
   }
 
-  public static Date getExpiryDate(String expiresInString) {
-    Calendar cal = Calendar.getInstance();
-    Long milliseconds = resolveExpression(expiresInString);
-    Long seconds = milliseconds / 1000;
-    int secondsToAdd = seconds.intValue();
+  // public static Date getExpiryDate(String expiresInString) {
+  //   Calendar cal = Calendar.getInstance();
+  //   Long milliseconds = resolveExpression(expiresInString);
+  //   Long seconds = milliseconds / 1000;
+  //   int secondsToAdd = seconds.intValue();
+  //   if (secondsToAdd <= 0) return null; /* no expiry */
+  //   cal.add(Calendar.SECOND, secondsToAdd);
+  //   Date then = cal.getTime();
+  //   return then;
+  // }
+
+  public static Instant getExpiryInstant(String expiresInString) {
+    int secondsToAdd = ((Long) resolveExpression(expiresInString)).intValue();
     if (secondsToAdd <= 0) return null; /* no expiry */
-    cal.add(Calendar.SECOND, secondsToAdd);
-    Date then = cal.getTime();
-    return then;
+    return Instant.now().plusSeconds(secondsToAdd);
   }
 
   /*
@@ -56,7 +60,7 @@ public class TimeResolver {
    * seconds, such as 30d, 12d, 8h, 24h, 45m, 30s, into a numeric quantity in
    * seconds. Default TimeUnit is s. Eg. 30 is treated as 30s.
    */
-  public static Long resolveExpression(String subject) {
+  public static long resolveExpression(String subject) {
     Matcher m = expiryPattern.matcher(subject);
     if (m.find()) {
       String key = m.group(2);

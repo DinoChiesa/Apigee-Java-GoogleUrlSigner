@@ -59,8 +59,7 @@ To use V4 signing, configure the policy like this:
 ```
 <JavaCallout name='Java-URL-Sign-V4'>
   <Properties>
-    <Property name='private-key'>{my_private_key}</Property>
-    <Property name='private-key-password'>{my_private_key_password}</Property>
+    <Property name='service-account-key'>{my_service_account_json}</Property>
     <Property name='verb'>GET</Property>
     <Property name='resource'>{my_resource}</Property>
     <Property name='expires-in'>10m</Property>
@@ -74,19 +73,20 @@ Within the Properties, you can specify the various inputs for the signature.
 
 | name                 | required | meaning                                                           |
 | -------------------- | -------- | ----------------------------------------------------------------- |
-| private-key          | required | a PEM-encoded string containing an RSA private key                |
-| private-key-password | optional | the plaintext password for the key, if any.                       |
+| service-account-key  | required | the contents of the [service account key file](https://cloud.google.com/iam/docs/creating-managing-service-account-keys) from Google. This is a JSON string containing the service account information, includign the private key and client_email.       |
 | verb                 | required | the verb: GET, POST, etc                                          |
 | resource             | required | the resource string, eg: /example-bucket/cat-pics/tabby.jpeg      |
-| expires-in           | optional | a string representing _relative_ expiry.  10s, 5m, 2h, 3d.  With no character suffix, interpreted as "seconds". This interval is added to the current time to calculate expiry. |
+| expires-in           | optional | a string representing _relative_ expiry.  10s, 5m, 2h, 3d.  With no character suffix, interpreted as "seconds". This interval is added to the current time to calculate expiry. For V4, the longest permitted expiration value is 604800 seconds (7 days). |
 | expiry               | optional | a string representing expiry, in absolute seconds-since-epoch.    |
-| content-md5          | optional | the MD5 checksum the client must pass                             |
-| content-type         | optional | content-type header, as above.                                    |
+| addl-headers         | optional | a string of name:value pairs, separated by \|  |
+| addl-query           | optional | a string of param=value pairs, separated by &  |
+| payload              | optional | a string indicating the payload that will be used with the signed request. Empty for GET requests. |
 
+For all properties, you can pass an explicit value or a variable reference,
+which is a variable name surrounded by curlies, such
+as {verb}.
 
-You must pass one of `expires-in` or `expiry`. If you pass both, `expires-in` takes precedence.
-
-Today it is not possible to pass canonicalized extension headers.
+Pass either `expires-in` or `expiry`. If you pass both, `expires-in` takes precedence.
 
 The output of the callout is a set of context variables:
 
@@ -131,7 +131,7 @@ Within the Properties, you can specify the various inputs for the signature.
 | content-type         | optional | content-type header, as above.                                    |
 | access-id            | optional | the GOOGLE_ACCESS_STORAGE_ID. Used for constructing the full URL. |
 
-You must pass one of `expires-in` or `expiry`. If you pass both, `expires-in` takes precedence.
+Pass either `expires-in` or `expiry`. If you pass both, `expires-in` takes precedence.
 
 Today it is not possible to pass canonicalized extension headers.
 

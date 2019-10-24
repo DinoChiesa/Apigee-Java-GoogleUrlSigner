@@ -13,14 +13,30 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <java.version>1.8</java.version>
+    <javaxjson.version>1.1.4</javaxjson.version>
     <testng.version>6.8.7</testng.version>
     <bouncycastle.version>1.60</bouncycastle.version>
     <jmockit.version>1.7</jmockit.version>
-    <commons-lang3.version>3.7</commons-lang3.version>
     <apiproxy.java.rsrc.dir>../bundle/apiproxy/resources/java</apiproxy.java.rsrc.dir>
   </properties>
 
   <dependencies>
+
+    <!-- https://mvnrepository.com/artifact/javax.json/javax.json-api -->
+    <dependency>
+      <groupId>javax.json</groupId>
+      <artifactId>javax.json-api</artifactId>
+      <version>${javaxjson.version}</version>
+      <scope>compile</scope>
+    </dependency>
+
+    <!-- https://mvnrepository.com/artifact/org.glassfish/javax.json -->
+    <dependency>
+      <groupId>org.glassfish</groupId>
+      <artifactId>javax.json</artifactId>
+      <version>${javaxjson.version}</version>
+      <scope>compile</scope>
+    </dependency>
 
     <dependency>
       <groupId>org.bouncycastle</groupId>
@@ -34,7 +50,7 @@
       <version>${bouncycastle.version}</version>
       <scope>provided</scope>
     </dependency>
-<!--
+    <!--
 
 The following 2 jar dependencies from Apigee are not avaiable in any
 public repo. You can install them in your machine-local repo (The .m2
@@ -44,22 +60,22 @@ Run the  buildsetup.sh script to do this, or
 
 do it manually by running these commands:
 
-  mvn install:install-file \
-   -Dfile=/Path/To/expressions-1.0.0.jar \
-   -DgroupId=com.apigee.edge \
-   -DartifactId=expressions \
-   -Dversion=1.0.0 \
-   -Dpackaging=jar \
-   -DgeneratePom=true
+mvn install:install-file \
+-Dfile=/Path/To/expressions-1.0.0.jar \
+-DgroupId=com.apigee.edge \
+-DartifactId=expressions \
+-Dversion=1.0.0 \
+-Dpackaging=jar \
+-DgeneratePom=true
 
-  mvn install:install-file \
-   -Dfile=/Path/To/message-flow-1.0.0.jar \
-   -DgroupId=com.apigee.edge \
-   -DartifactId=message-flow \
-   -Dversion=1.0.0 \
-   -Dpackaging=jar \
-   -DgeneratePom=true
--->
+mvn install:install-file \
+-Dfile=/Path/To/message-flow-1.0.0.jar \
+-DgroupId=com.apigee.edge \
+-DartifactId=message-flow \
+-Dversion=1.0.0 \
+-Dpackaging=jar \
+-DgeneratePom=true
+    -->
 
     <dependency>
       <groupId>com.apigee.edge</groupId>
@@ -120,6 +136,10 @@ do it manually by running these commands:
         <configuration>
           <source>${java.version}</source>
           <target>${java.version}</target>
+            <compilerArgs>
+              <!-- <arg>-verbose</arg> -->
+              <arg>-Xlint:unchecked,deprecation</arg>
+            </compilerArgs>
         </configuration>
       </plugin>
 
@@ -146,7 +166,7 @@ do it manually by running these commands:
                   <fileset dir="${project.build.directory}">
                     <include name="${project.build.finalName}.jar"/>
                     <!-- copy any required dependencies tht are not
-                    already included in the Edge runtime:
+                         already included in the Edge runtime:
                     -->
                     <include name="lib/*.jar"/>
                     <exclude name="lib/message-flow-1.0.0.jar"/>
@@ -163,7 +183,7 @@ do it manually by running these commands:
         </executions>
       </plugin>
 
-     <plugin>
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
         <version>3.0.0-M2</version>
@@ -184,7 +204,7 @@ do it manually by running these commands:
         </executions>
       </plugin>
 
-       <plugin>
+      <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>versions-maven-plugin</artifactId>
         <version>2.7</version>

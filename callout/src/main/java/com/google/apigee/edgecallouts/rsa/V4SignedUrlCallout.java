@@ -20,13 +20,21 @@ import com.apigee.flow.execution.ExecutionResult;
 import com.apigee.flow.execution.IOIntensive;
 import com.apigee.flow.execution.spi.Execution;
 import com.apigee.flow.message.MessageContext;
+import com.google.apigee.json.JavaxJson;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.AbstractMap;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.bouncycastle.crypto.digests.SHA256Digest;
 
 @IOIntensive
@@ -36,12 +44,110 @@ public class V4SignedUrlCallout extends SigningCalloutBase implements Execution 
 
   private static final String V4_SIGNED_URL_SPEC =
       "https://storage.googleapis.com{sign_resource}?{sign_canonical_query_string}&X-Goog-Signature={sign_signature}";
+  private static final String rsaSigningAlgorithm = "GOOG4-RSA-SHA256";
 
   public V4SignedUrlCallout(Map properties) {
     super(properties);
   }
 
-  private String getHashedCanonicalRequest(final MessageContext msgCtxt) throws Exception {
+  private String encodeURIComponent(String s) {
+    try {
+      return URLEncoder.encode(s,"UTF-8").replaceAll("\\+", "%20");
+    }
+    catch(UnsupportedEncodingException e) {
+        throw new RuntimeException(e);
+    }
+
+  }
+
+  private String headersToString(Map<String, String> headers) {
+    // TODO: handle the case of a duplicated header name
+    return headers.entrySet().stream()
+        .sorted(Map.Entry.comparingByKey())
+        .map(entry -> entry.getKey().toLowerCase().trim() + ":" + entry.getValue().trim())
+        .collect(Collectors.joining("\n"));
+  }
+
+  private String queryToString(Map<String, String> query) {
+    return query.entrySet().stream()
+        .sorted(Map.Entry.comparingByKey())
+        .map(entry -> entry.getKey() + "=" + encodeURIComponent(entry.getValue()))
+        .collect(Collectors.joining("&"));
+  }
+
+  private Map<String, String> sortMapByKey(Map<String, String> map) {
+    return map.entrySet().stream()
+        .sorted(Map.Entry.comparingByKey())
+        .collect(
+            Collectors.toMap(
+                Map.Entry::getKey,
+                Map.Entry::getValue,
+                (oldValue, newValue) -> oldValue,
+                LinkedHashMap::new));
+  }
+
+  private Map<String, String> getCanonicalHeaders(final MessageContext msgCtxt) throws Exception {
+    Map<String, String> headers = new HashMap<String, String>();
+    headers.put("host", "storage.googleapis.com");
+    String additionalHeaders = getSimpleOptionalProperty("addl-headers", msgCtxt);
+    if (additionalHeaders != null) {
+      String[] items = additionalHeaders.split("\\|");
+      Arrays.stream(items)
+          .forEach(
+              item -> {
+                if (item != null && !item.equals("")) {
+                  String[] kv = item.split(":", 2);
+                  if (kv.length == 2
+                      && kv[0] != null
+                      && !kv[0].equals("")
+                      && kv[1] != null
+                      && !kv[1].equals("")) {
+                    headers.put(kv[0].toLowerCase(), kv[1]);
+                  }
+                }
+              });
+    }
+
+    return sortMapByKey(headers);
+  }
+
+  private String getCredentialScope(final MessageContext msgCtxt) {
+    String now = msgCtxt.getVariable(varName("now"));
+    return now.substring(0, 8) + "/us/storage/goog4_request";
+  }
+
+  private Map<String, String> getCanonicalQuery(
+      final MessageContext msgCtxt, String signedHeaders, String serviceAccountEmail)
+      throws Exception {
+    Map<String, String> query = new HashMap<String, String>();
+    query.put("X-Goog-Algorithm", rsaSigningAlgorithm);
+    query.put("X-Goog-Credential", serviceAccountEmail + "/" + getCredentialScope(msgCtxt));
+    query.put("X-Goog-Date", msgCtxt.getVariable(varName("now")));
+    long expiryEpochSeconds = getExpiry(msgCtxt, 604800);
+    setExpirationVariables(expiryEpochSeconds, msgCtxt);
+    query.put("X-Goog-Expires", Long.toString(expiryEpochSeconds));
+    query.put("X-Goog-SignedHeaders", signedHeaders);
+
+    // additional query params
+    String additionalQuery = getSimpleOptionalProperty("addl-query", msgCtxt);
+    if (additionalQuery != null) {
+      String[] items = additionalQuery.split("&");
+      Arrays.stream(items)
+          .forEach(
+              item -> {
+                if (item != null && !item.equals("")) {
+                  String[] kv = item.split("=", 2);
+                  if (kv.length == 2 && !kv[0].equals("") && !kv[1].equals("")) {
+                    query.put(kv[0], kv[1]);
+                  }
+                }
+              });
+    }
+    return sortMapByKey(query);
+  }
+
+  private String getHashedCanonicalRequest(
+      final MessageContext msgCtxt, final Map<String, String> serviceAccountInfo) throws Exception {
     // CanonicalRequest =
     //   HTTP_VERB + "\n" +
     //   PATH_TO_RESOURCE + "\n" +
@@ -51,12 +157,37 @@ public class V4SignedUrlCallout extends SigningCalloutBase implements Execution 
     //   SIGNED_HEADERS + "\n" +
     //   PAYLOAD
 
+    String clientEmail = serviceAccountInfo.get("client_email");
+    if (clientEmail == null)
+      throw new IllegalStateException("the service account key data is invalid");
+
+    Map<String, String> canonicalHeaders = getCanonicalHeaders(msgCtxt);
+    String signedHeaders =
+        canonicalHeaders.keySet().stream()
+            .map(e -> e.toLowerCase().trim())
+            .collect(Collectors.joining(";"));
+
     String verb = getSimpleRequiredProperty("verb", msgCtxt);
     String resource = getSimpleRequiredProperty("resource", msgCtxt);
+    String canonicalQueryString =
+        queryToString(getCanonicalQuery(msgCtxt, signedHeaders, clientEmail));
+    msgCtxt.setVariable(varName("canonical_query_string"), canonicalQueryString);
+    String canonicalHeadersString = headersToString(canonicalHeaders);
+    String payload = getSimpleOptionalProperty("payload", msgCtxt);
 
-    String canonicalRequest = verb + "\n" + resource + "\n" + "";
-
-    // TODO: implement the rest of this
+    String canonicalRequest =
+        verb
+            + "\n"
+            + resource
+            + "\n"
+            + canonicalQueryString
+            + "\n"
+            + canonicalHeadersString
+            + "\n"
+            + "\n"
+            + signedHeaders
+            + "\n"
+            + (payload != null ? payload : "");
 
     SHA256Digest digest = new SHA256Digest();
     byte[] messageBytes = canonicalRequest.getBytes(StandardCharsets.UTF_8);
@@ -66,41 +197,61 @@ public class V4SignedUrlCallout extends SigningCalloutBase implements Execution 
     return org.bouncycastle.util.encoders.Hex.toHexString(output);
   }
 
-  private String getSigningBase(final MessageContext msgCtxt) throws Exception {
+  private String getStringToSign(
+      final MessageContext msgCtxt, final Map<String, String> serviceAccountInfo) throws Exception {
     // StringToSign =
     //   SIGNING_ALGORITHM + "\n" +
     //   CURRENT_DATETIME + "\n" +
     //   CREDENTIAL_SCOPE + "\n" +
     //   HASHED_CANONICAL_REQUEST
-    final String signingAlgorithm = "GOOG4-RSA-SHA256";
-
-    // CURRENT_DATETIME, in the ISO 8601 basic format, eg 20181026T211942Z
-    final String currentTime =
-        ZonedDateTime.ofInstant(Instant.now(), ZoneOffset.UTC).format(formatter);
-
-    // CREDENTIAL SCOPE: The credential scope of the request for signing the string-to-sign.
-    String credentialScope = "foo";
-    // HASHED_CANONICAL_REQUEST: The hex-encoded, SHA-256 hash of the canonical request, which you
-    // created in the previous step.
 
     String stringToSign =
-        signingAlgorithm
+        rsaSigningAlgorithm
             + "\n"
-            + currentTime
+            + msgCtxt.getVariable(varName("now"))
             + "\n"
-            + credentialScope
+            + getCredentialScope(msgCtxt)
             + "\n"
-            + getHashedCanonicalRequest(msgCtxt);
+            + getHashedCanonicalRequest(msgCtxt, serviceAccountInfo);
 
     msgCtxt.setVariable(varName("signing_string"), stringToSign);
     return stringToSign;
   }
 
+  private Map<String, String> getServiceAccountKey(final MessageContext msgCtxt) throws Exception {
+    String serviceAccountJson = getSimpleRequiredProperty("service-account-key", msgCtxt);
+    @SuppressWarnings("unchecked")
+    Map<String, String> serviceAccountInfo =
+        ((Map<String, Object>) JavaxJson.fromJson(serviceAccountJson, Map.class))
+            .entrySet().stream()
+                .map(
+                    e ->
+                        new AbstractMap.SimpleImmutableEntry<>(e.getKey(), e.getValue().toString()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+    String accountType = serviceAccountInfo.get("type");
+    if (accountType == null || !accountType.equals("service_account"))
+      throw new IllegalStateException("the service account key data is invalid");
+
+    if (serviceAccountInfo.get("client_email") == null)
+      throw new IllegalStateException("the service account key data is missing the client_email");
+
+    if (serviceAccountInfo.get("private_key") == null)
+      throw new IllegalStateException("the service account key data is missing the private_key");
+
+    return serviceAccountInfo;
+  }
+
   public ExecutionResult execute(final MessageContext msgCtxt, final ExecutionContext execContext) {
     try {
-      String signingBase = getSigningBase(msgCtxt);
-      KeyPair keypair = getPrivateKey(msgCtxt);
-      byte[] signatureBytes = sign_RSA_SHA256(signingBase, keypair);
+      final String currentTime =
+          ZonedDateTime.ofInstant(Instant.now(), ZoneOffset.UTC).format(formatter);
+      msgCtxt.setVariable(varName("now"), currentTime);
+
+      Map<String, String> serviceAccountInfo = getServiceAccountKey(msgCtxt);
+      String stringToSign = getStringToSign(msgCtxt, serviceAccountInfo);
+      KeyPair keypair = readKeyPair(serviceAccountInfo.get("private_key"), null);
+      byte[] signatureBytes = sign_RSA_SHA256(stringToSign, keypair);
       String signatureVar = varName("signature");
       String hexSignature = org.bouncycastle.util.encoders.Hex.toHexString(signatureBytes);
       msgCtxt.setVariable(signatureVar, hexSignature);

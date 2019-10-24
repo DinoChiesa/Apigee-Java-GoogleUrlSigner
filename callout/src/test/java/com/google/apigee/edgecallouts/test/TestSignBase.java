@@ -42,36 +42,35 @@ public class TestSignBase {
 
     msgCtxt =
         new MockUp<MessageContext>() {
-          private Map variables;
+          private Map<String,Object> variables;
+
+          private Map<String,Object> getVariables() {
+            if (variables == null) {
+              variables = new HashMap<String,Object>();
+            }
+            return variables;
+          }
 
           public void $init() {
-            variables = new HashMap();
+            variables = new HashMap<String,Object>();
           }
 
           @Mock()
+          @SuppressWarnings("unchecked")
           public <T> T getVariable(final String name) {
-            if (variables == null) {
-              variables = new HashMap();
-            }
-            return (T) variables.get(name);
+            return (T) getVariables().get(name);
           }
 
           @Mock()
           public boolean setVariable(final String name, final Object value) {
-            if (variables == null) {
-              variables = new HashMap();
-            }
-            variables.put(name, value);
+            getVariables().put(name, value);
             return true;
           }
 
           @Mock()
           public boolean removeVariable(final String name) {
-            if (variables == null) {
-              variables = new HashMap();
-            }
-            if (variables.containsKey(name)) {
-              variables.remove(name);
+            if (getVariables().containsKey(name)) {
+              getVariables().remove(name);
             }
             return true;
           }
