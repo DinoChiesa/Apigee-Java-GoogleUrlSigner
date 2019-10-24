@@ -3,7 +3,7 @@
     <Payload contentType='application/json'>{
   "status" : "ok",
   "resource" : "{sign_resource}",
-  "signature" : "{sign_output}",
+  "signature" : "{sign_signature}",
   "expiration" : {
     "seconds" : {sign_expiration},
     "relative" : {sign_duration},

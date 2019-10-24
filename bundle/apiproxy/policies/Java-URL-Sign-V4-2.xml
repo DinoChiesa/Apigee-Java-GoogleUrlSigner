@@ -1,0 +1,11 @@
+<JavaCallout name='Java-URL-Sign-V4-2'>
+  <Properties>
+    <Property name='service-account-key'>{my_service_account_key}</Property>
+    <Property name='verb'>GET</Property>
+    <Property name='resource'>{my_resource}</Property>
+    <!-- absolute expiry -->
+    <Property name='expiry'>1597014120</Property>
+  </Properties>
+  <ClassName>com.google.apigee.edgecallouts.rsa.V4SignedUrlCallout</ClassName>
+  <ResourceURL>java://edge-google-signed-url-20191024.jar</ResourceURL>
+</JavaCallout>

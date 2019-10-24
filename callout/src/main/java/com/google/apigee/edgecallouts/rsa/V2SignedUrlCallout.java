@@ -62,7 +62,6 @@ public class V2SignedUrlCallout extends SigningCalloutBase implements Execution 
             + resource;
     msgCtxt.setVariable(varName("resource"), resource);
     msgCtxt.setVariable(varName("verb"), verb);
-    setExpirationVariables(expirationInSeconds, msgCtxt);
     msgCtxt.setVariable(varName("signing_string"), stringToSign);
     return stringToSign;
   }

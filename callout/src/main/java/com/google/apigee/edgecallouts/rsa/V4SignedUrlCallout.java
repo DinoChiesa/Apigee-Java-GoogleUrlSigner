@@ -112,8 +112,8 @@ public class V4SignedUrlCallout extends SigningCalloutBase implements Execution 
   }
 
   private String getCredentialScope(final MessageContext msgCtxt) {
-    String now = msgCtxt.getVariable(varName("now"));
-    return now.substring(0, 8) + "/us/storage/goog4_request";
+String nowFormatted = msgCtxt.getVariable(varName("now_formatted"));
+    return nowFormatted.substring(0, 8) + "/us/storage/goog4_request";
   }
 
   private Map<String, String> getCanonicalQuery(
@@ -122,10 +122,10 @@ public class V4SignedUrlCallout extends SigningCalloutBase implements Execution 
     Map<String, String> query = new HashMap<String, String>();
     query.put("X-Goog-Algorithm", rsaSigningAlgorithm);
     query.put("X-Goog-Credential", serviceAccountEmail + "/" + getCredentialScope(msgCtxt));
-    query.put("X-Goog-Date", msgCtxt.getVariable(varName("now")));
-    long expiryEpochSeconds = getExpiry(msgCtxt, 604800);
-    setExpirationVariables(expiryEpochSeconds, msgCtxt);
-    query.put("X-Goog-Expires", Long.toString(expiryEpochSeconds));
+    query.put("X-Goog-Date", msgCtxt.getVariable(varName("now_formatted")));
+    Instant now = (Instant) msgCtxt.getVariable(varName("now"));
+    long expiryEpochSeconds = getExpiry(msgCtxt, now, 604800);
+    query.put("X-Goog-Expires", msgCtxt.getVariable(varName("duration")));
     query.put("X-Goog-SignedHeaders", signedHeaders);
 
     // additional query params
@@ -169,6 +169,7 @@ public class V4SignedUrlCallout extends SigningCalloutBase implements Execution 
 
     String verb = getSimpleRequiredProperty("verb", msgCtxt);
     String resource = getSimpleRequiredProperty("resource", msgCtxt);
+    msgCtxt.setVariable(varName("resource"), resource);
     String canonicalQueryString =
         queryToString(getCanonicalQuery(msgCtxt, signedHeaders, clientEmail));
     msgCtxt.setVariable(varName("canonical_query_string"), canonicalQueryString);
@@ -244,9 +245,11 @@ public class V4SignedUrlCallout extends SigningCalloutBase implements Execution 
 
   public ExecutionResult execute(final MessageContext msgCtxt, final ExecutionContext execContext) {
     try {
+      final Instant now = Instant.now();
+      msgCtxt.setVariable(varName("now"), now);
       final String currentTime =
-          ZonedDateTime.ofInstant(Instant.now(), ZoneOffset.UTC).format(formatter);
-      msgCtxt.setVariable(varName("now"), currentTime);
+          ZonedDateTime.ofInstant(now, ZoneOffset.UTC).format(formatter);
+      msgCtxt.setVariable(varName("now_formatted"), currentTime);
 
       Map<String, String> serviceAccountInfo = getServiceAccountKey(msgCtxt);
       String stringToSign = getStringToSign(msgCtxt, serviceAccountInfo);

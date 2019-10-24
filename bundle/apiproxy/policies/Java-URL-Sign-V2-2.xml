@@ -1,12 +1,12 @@
-<JavaCallout name='Java-URL-Sign-1'>
+<JavaCallout name='Java-URL-Sign-V2-2'>
   <Properties>
     <Property name='private-key'>{my_private_key}</Property>
     <Property name='private-key-password'>{my_private_key_password}</Property>
     <Property name='verb'>GET</Property>
     <Property name='resource'>{my_resource}</Property>
-    <!-- relative expiry -->
-    <Property name='expires-in'>10m</Property>
+    <!-- absolute expiry -->
+    <Property name='expiry'>1597014120</Property>
   </Properties>
-  <ClassName>com.google.apigee.edgecallouts.rsa.SignedUrlCallout</ClassName>
-  <ResourceURL>java://edge-google-signed-url-20191023.jar</ResourceURL>
+  <ClassName>com.google.apigee.edgecallouts.rsa.V2SignedUrlCallout</ClassName>
+  <ResourceURL>java://edge-google-signed-url-20191024.jar</ResourceURL>
 </JavaCallout>

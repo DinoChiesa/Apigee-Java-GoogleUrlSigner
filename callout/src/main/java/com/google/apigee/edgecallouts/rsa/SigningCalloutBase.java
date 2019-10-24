@@ -155,14 +155,25 @@ public abstract class SigningCalloutBase {
   }
 
   protected long getExpiry(final MessageContext msgCtxt) throws Exception {
-    return getExpiry(msgCtxt, 0);
+    return getExpiry(msgCtxt, Instant.now(), 0);
   }
 
-  protected long getExpiry(final MessageContext msgCtxt, long max) throws Exception {
+  // protected void setExpirationVariables(long expiry, final MessageContext msgCtxt) {
+  //   msgCtxt.setVariable(varName("expiration"), Long.toString(expiry));
+  //   Instant expiryInstant = Instant.ofEpochSecond(expiry);
+  //   Instant now = Instant.now();
+  //   msgCtxt.setVariable(
+  //       varName("duration"), Long.toString(Duration.between(now, expiryInstant).getSeconds()));
+  //   msgCtxt.setVariable(
+  //       varName("expiration_ISO"),
+  //       ZonedDateTime.ofInstant(expiryInstant, ZoneOffset.UTC)
+  //           .format(DateTimeFormatter.ISO_INSTANT));
+  // }
+
+  protected long getExpiry(final MessageContext msgCtxt, Instant now, long max) throws Exception {
     String expiresInExpression = getSimpleOptionalProperty("expires-in", msgCtxt);
     long expiryEpochSeconds = 0L;
     long durationSeconds = 0L;
-    Instant now = Instant.now();
     if (expiresInExpression != null && !expiresInExpression.equals("")) {
       durationSeconds = TimeResolver.resolveExpression(expiresInExpression);
       expiryEpochSeconds = now.plusSeconds(durationSeconds).getEpochSecond();
@@ -180,6 +191,14 @@ public abstract class SigningCalloutBase {
 
     if (expiryEpochSeconds <= 0)
       throw new IllegalStateException("the configured expiry must be positive");
+
+    msgCtxt.setVariable(varName("duration"), Long.toString(durationSeconds));
+    msgCtxt.setVariable(varName("expiration"), Long.toString(expiryEpochSeconds));
+    msgCtxt.setVariable(
+         varName("expiration_ISO"),
+         ZonedDateTime
+         .ofInstant(Instant.ofEpochSecond(expiryEpochSeconds), ZoneOffset.UTC)
+         .format(DateTimeFormatter.ISO_INSTANT));
 
     return expiryEpochSeconds;
   }
@@ -264,17 +283,5 @@ public abstract class SigningCalloutBase {
     StringWriter sw = new StringWriter();
     t.printStackTrace(new PrintWriter(sw));
     return sw.toString();
-  }
-
-  protected void setExpirationVariables(long expiry, final MessageContext msgCtxt) {
-    msgCtxt.setVariable(varName("expiration"), Long.toString(expiry));
-    Instant expiryInstant = Instant.ofEpochSecond(expiry);
-    Instant now = Instant.now();
-    msgCtxt.setVariable(
-        varName("duration"), Long.toString(Duration.between(now, expiryInstant).getSeconds()));
-    msgCtxt.setVariable(
-        varName("expiration_ISO"),
-        ZonedDateTime.ofInstant(expiryInstant, ZoneOffset.UTC)
-            .format(DateTimeFormatter.ISO_INSTANT));
   }
 }

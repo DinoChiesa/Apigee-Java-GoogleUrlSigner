@@ -25,7 +25,7 @@ import org.testng.annotations.Test;
 public class TestUrlSignV2Callout extends TestSignBase {
 
   @Test
-  public void test_EmptyVerb() throws Exception {
+  public void emptyVerb() throws Exception {
     String expectedError = "verb resolves to an empty string";
     Map<String, String> props = new HashMap<String, String>();
     props.put("private-key", "not-a-private-key");
@@ -40,11 +40,11 @@ public class TestUrlSignV2Callout extends TestSignBase {
     // System.out.printf("expected error: %s\n", errorOutput);
     Assert.assertEquals(errorOutput, expectedError, "error not as expected");
     Object stacktrace = msgCtxt.getVariable("sign_stacktrace");
-    Assert.assertNull(stacktrace, "EmptyVerb() stacktrace");
+    Assert.assertNull(stacktrace, "stacktrace");
   }
 
   @Test
-  public void test_MissingExpiresIn() throws Exception {
+  public void missingExpiresIn() throws Exception {
     String expectedError = "the configuration must specify one of expiry or expires-in";
     // msgCtxt.setVariable("variable-name", variableValue);
 
@@ -63,11 +63,11 @@ public class TestUrlSignV2Callout extends TestSignBase {
     // System.out.printf("expected error: %s\n", errorOutput);
     Assert.assertEquals(errorOutput, expectedError, "error not as expected");
     Object stacktrace = msgCtxt.getVariable("sign_stacktrace");
-    Assert.assertNull(stacktrace, "MissingExpiresIn() stacktrace");
+    Assert.assertNull(stacktrace, "stacktrace");
   }
 
   @Test
-  public void test_MissingResource() throws Exception {
+  public void missingResource() throws Exception {
     String expectedError = "resource resolves to an empty string";
     Map<String, String> props = new HashMap<String, String>();
     props.put("verb", "GET");
@@ -85,11 +85,11 @@ public class TestUrlSignV2Callout extends TestSignBase {
     // System.out.printf("expected error: %s\n", errorOutput);
     Assert.assertEquals(errorOutput, expectedError, "error not as expected");
     Object stacktrace = msgCtxt.getVariable("sign_stacktrace");
-    Assert.assertNull(stacktrace, "MissingResource() stacktrace");
+    Assert.assertNull(stacktrace, "stacktrace");
   }
 
   @Test
-  public void test_MissingPrivateKey() throws Exception {
+  public void missingPrivateKey() throws Exception {
     String expectedError = "private-key resolves to an empty string";
     // msgCtxt.setVariable("my-private-key", privateKey1);
 
@@ -110,11 +110,11 @@ public class TestUrlSignV2Callout extends TestSignBase {
     // System.out.printf("expected error: %s\n", errorOutput);
     Assert.assertEquals(errorOutput, expectedError, "error not as expected");
     Object stacktrace = msgCtxt.getVariable("sign_stacktrace");
-    Assert.assertNull(stacktrace, "MissingPrivateKey() stacktrace");
+    Assert.assertNull(stacktrace, "stacktrace");
   }
 
   @Test
-  public void test_BogusPrivateKey() throws Exception {
+  public void bogusPrivateKey() throws Exception {
     String expectedError = "unknown object type when decoding private key";
     // msgCtxt.setVariable("my-private-key", privateKey1);
 
@@ -135,11 +135,11 @@ public class TestUrlSignV2Callout extends TestSignBase {
     // System.out.printf("expected error: %s\n", errorOutput);
     Assert.assertEquals(errorOutput, expectedError, "error not as expected");
     Object stacktrace = msgCtxt.getVariable("sign_stacktrace");
-    Assert.assertNotNull(stacktrace, "BogusPrivateKey() stacktrace");
+    Assert.assertNotNull(stacktrace, "stacktrace");
   }
 
   @Test
-  public void test_GoodResult() throws Exception {
+  public void goodResult() throws Exception {
     msgCtxt.setVariable("my-private-key", privateKey1);
 
     Map<String, String> props = new HashMap<String, String>();
@@ -168,7 +168,7 @@ public class TestUrlSignV2Callout extends TestSignBase {
 
     Object duration = msgCtxt.getVariable("sign_duration");
     Assert.assertNotNull(duration, "duration");
-    Assert.assertTrue(Integer.parseInt((String)duration) <= 86400);
+    Assert.assertEquals(Integer.parseInt((String)duration), 86400);
 
     Object expirationISO = msgCtxt.getVariable("sign_expiration_ISO");
     Assert.assertNotNull(expirationISO, "expiration_ISO");
@@ -212,7 +212,7 @@ public class TestUrlSignV2Callout extends TestSignBase {
 
     Object duration = msgCtxt.getVariable("sign_duration");
     Assert.assertNotNull(duration, "duration");
-    Assert.assertTrue(Integer.parseInt((String)duration) <= 60);
+    Assert.assertEquals(Integer.parseInt((String)duration), 60);
 
     Object expirationISO = msgCtxt.getVariable("sign_expiration_ISO");
     Assert.assertNotNull(expirationISO, "expiration_ISO");

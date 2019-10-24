@@ -190,13 +190,14 @@ public class TestUrlSignV4Callout extends TestSignBase {
 
     Object duration = msgCtxt.getVariable("sign_duration");
     Assert.assertNotNull(duration, "duration");
-    Assert.assertTrue(Integer.parseInt((String)duration) <= 600);
+    Assert.assertEquals(Integer.parseInt((String)duration), 600);
 
     Object expirationISO = msgCtxt.getVariable("sign_expiration_ISO");
     Assert.assertNotNull(expirationISO, "expiration_ISO");
 
-    Object signedUrl = msgCtxt.getVariable("sign_signedurl");
+    String signedUrl = (String) msgCtxt.getVariable("sign_signedurl");
     Assert.assertNotNull(signedUrl, "signedUrl");
+    Assert.assertTrue(signedUrl.contains("/foo/bar"));
 
     System.out.println("signedUrl: " + signedUrl);
     System.out.println("signature: " + signature);

@@ -17,13 +17,20 @@ signature and embeds the encoded version into a url as a query parameter.
 
 That's what this callout does.
 
-
 ## V2 vs V4
 
 Comparing V2 to V4 signing, the "string to sign" is different, and the signedurl itself is also
 different.  Also the V4 signing has more strict limits on the expiry. For more
 details see [this link](https://stackoverflow.com/q/58145068/48082).
 
+
+## Why Signed URLs?
+
+Suppose you need to generate a URL for Google Cloud Storage resource, and expose
+it to someone else, to allow that party to access the URL for a given period of
+time, with no other authorization. 
+
+You can do that with "signed URLs".  If you want to do this from within an Apigee Edge proxy, this callout might help.
 
 ## Why use an Apigee callout rather than direct signing?
 
@@ -125,7 +132,7 @@ Within the Properties, you can specify the various inputs for the signature.
 | private-key-password | optional | the plaintext password for the key, if any.                       |
 | verb                 | required | the verb: GET, POST, etc                                          |
 | resource             | required | the resource string, eg: /example-bucket/cat-pics/tabby.jpeg      |
-| expires-in           | optional | a string representing _relative_ expiry.  10s, 5m, 2h, 3d.  With no character suffix, interpreted as "seconds". This interval is added to the current time to calculate expiry. |
+| expires-in           | optional | a string representing _relative_ expiry, eg. 10s, 5m, 2h, 3d.  With no character suffix, interpreted as "seconds". |
 | expiry               | optional | a string representing expiry, in absolute seconds-since-epoch.    |
 | content-md5          | optional | the MD5 checksum the client must pass.                            |
 | content-type         | optional | content-type header, as above.                                    |
@@ -140,8 +147,8 @@ The output of the callout is a set of context variables:
 | name                     | meaning                                                                            |
 | ------------------------ | ---------------------------------------------------------------------------------- |
 | sign_signedurl           | the full signedurl                                                                 |
-| sign_signature           | the base64-encoded signature value                                                 |
-| sign_signature_unencoded | the unencoded signature value                                                      |
+| sign_signature           | the base64-encoded, then url-encoded signature value                               |
+| sign_signature_unencoded | the base64-encoded signature value                                                 |
 | sign_expiration          | The expiration value, in seconds-since-epoch. Computed from NOW + expires-in.      |
 | sign_duration            | The duration, (expiration time - now), in seconds. For diagnostic information.     |
 | sign_expiration_ISO      | An ISO-formatted string for the expiration. For diagnostics and human consumption. |
@@ -155,32 +162,32 @@ To use it, deploy it to any org and environment, then invoke it like this:
 ```
 ORG=myorg
 ENV=myenv
-curl -i https://$ORG-$ENV.apigee.net/signurl/t1
+curl -i https://$ORG-$ENV.apigee.net/signurl/v4-t1
 ```
 
 You should see a signature upon output:
 
 ```
 HTTP/1.1 200 OK
-Date: Thu, 01 Aug 2019 17:39:21 GMT
+Date: Thu, 24 Oct 2019 22:44:41 GMT
 Content-Type: application/json
-Content-Length: 1088
+Content-Length: 1556
 Connection: keep-alive
 
 {
   "status" : "ok",
   "resource" : "/example-bucket/cat-pics/tabby.png",
-  "signature" : "ycDqbj8X2EaT%2FHHIKc7xVMAsFJDCBhN9B0ME8r2n1czBEAkrmwG081M%2F8V3PB0QeXljdK7n188qpsut8jupogjxYB743L%2FSz%2FOQ%2BT%2BnAtXnKZAYDwcZaMc5zCkXfS4Hj2%2FMIGsS6LtZeB9%2BdtlgSgKk4MVCiOGe19GFJgn0BQnW%2B%2FltpcBKS0yTruPNpNXQZ0LnvARcSq%2BvTQmHDsu9Knu4vw9Qd29ZXg02LvY2kAbqIwf8y3OiW43sFyrmGkeG4v%2F%2FC4QSCgo4OjSL4GaoVzuOeAhdgKgi2KrWcS0xw5WtnTMJMsvJlzMh6%2Bl4QxVBVYiO1BuUxE35NbxgqE3xkxA%3D%3D",
+  "signature" : "58467c906c7accf8f98bb2ca4de64b5dbb83159e225794b51572fb361af98e3517103bfd63b9295608f00cdbb70123edbed1dd6f6a317671e93ae6ec6818278bc16e9ca3fa2e6f943c9e0822e6ce51fffc69d947919ddfac00b919917631990885a8faae2d1041e09d5167686d2751ff95a38145f91f09dec35a7a1515456b771d94ba943d73db15dd3819a650cf97f706fc09edbfc17a29ff6b9bb6b44e88f26e658e9e77090de9734d0224771cad1659f433f2276740210ea3ccca9057306c708b60123da717f7b66475757867ad87073065ffcba7adfa4349778847d00f630012082bef98556514112a853735084762054e1354b75ce3801960022ccfe74f",
   "expiration" : {
-    "seconds" : 1564681761,
-    "ISO" : "2019-08-01T17:49:21Z"
+    "seconds" : 1571957681,
+    "relative" : 600,
+    "ISO" : "2019-10-24T22:54:41Z"
   },
-  "signedurl" : "https://storage.googleapis.com/example-bucket/cat-pics/tabby.png?GoogleAccessId=GOOGLE_ACCESS_STORAGE_ID&Expires=1564681761&Signature=ycDqbj8X2EaT%2FHHIKc7xVMAsFJDCBhN9B0ME8r2n1czBEAkrmwG081M%2F8V3PB0QeXljdK7n188qpsut8jupogjxYB743L%2FSz%2FOQ%2BT%2BnAtXnKZAYDwcZaMc5zCkXfS4Hj2%2FMIGsS6LtZeB9%2BdtlgSgKk4MVCiOGe19GFJgn0BQnW%2B%2FltpcBKS0yTruPNpNXQZ0LnvARcSq%2BvTQmHDsu9Knu4vw9Qd29ZXg02LvY2kAbqIwf8y3OiW43sFyrmGkeG4v%2F%2FC4QSCgo4OjSL4GaoVzuOeAhdgKgi2KrWcS0xw5WtnTMJMsvJlzMh6%2Bl4QxVBVYiO1BuUxE35NbxgqE3xkxA%3D%3D"
+  "signedurl" : "https://storage.googleapis.com/example-bucket/cat-pics/tabby.png?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=account-223456789%40project-apigee.iam.gserviceaccount.com%2F20191024%2Fus%2Fstorage%2Fgoog4_request&X-Goog-Date=20191024T224441Z&X-Goog-Expires=600&X-Goog-SignedHeaders=host&X-Goog-Signature=58467c906c7accf8f98bb2ca4de64b5dbb83159e225794b51572fb361af98e3517103bfd63b9295608f00cdbb70123edbed1dd6f6a317671e93ae6ec6818278bc16e9ca3fa2e6f943c9e0822e6ce51fffc69d947919ddfac00b919917631990885a8faae2d1041e09d5167686d2751ff95a38145f91f09dec35a7a1515456b771d94ba943d73db15dd3819a650cf97f706fc09edbfc17a29ff6b9bb6b44e88f26e658e9e77090de9734d0224771cad1659f433f2276740210ea3ccca9057306c708b60123da717f7b66475757867ad87073065ffcba7adfa4349778847d00f630012082bef98556514112a853735084762054e1354b75ce3801960022ccfe74f"
 }
-
 ```
 
 ## Bugs
 
-The V2 callout does not support producing signed URLs that require additional headers.
+* The V2 callout does not support producing signed URLs that require additional headers.
 
