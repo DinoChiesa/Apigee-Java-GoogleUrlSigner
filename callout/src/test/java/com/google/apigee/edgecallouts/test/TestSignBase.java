@@ -18,7 +18,11 @@ package com.google.apigee.edgecallouts.test;
 import com.apigee.flow.execution.ExecutionContext;
 import com.apigee.flow.message.Message;
 import com.apigee.flow.message.MessageContext;
+import java.io.File;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import mockit.Mock;
@@ -27,6 +31,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.testng.annotations.BeforeMethod;
 
 public class TestSignBase {
+  private static final String testKeyDir = "src/test/resources/keys";
 
   static {
     java.security.Security.addProvider(new BouncyCastleProvider());
@@ -42,17 +47,17 @@ public class TestSignBase {
 
     msgCtxt =
         new MockUp<MessageContext>() {
-          private Map<String,Object> variables;
+          private Map<String, Object> variables;
 
-          private Map<String,Object> getVariables() {
+          private Map<String, Object> getVariables() {
             if (variables == null) {
-              variables = new HashMap<String,Object>();
+              variables = new HashMap<String, Object>();
             }
             return variables;
           }
 
           public void $init() {
-            variables = new HashMap<String,Object>();
+            variables = new HashMap<String, Object>();
           }
 
           @Mock()
@@ -93,37 +98,37 @@ public class TestSignBase {
         }.getMockInstance();
   }
 
-  protected static final String privateKey1 =
-      "-----BEGIN ENCRYPTED PRIVATE KEY-----\n"
-          + "MIIFHzBJBgkqhkiG9w0BBQ0wPDAbBgkqhkiG9w0BBQwwDgQIe1dDIKI2EhwCAggA\n"
-          + "MB0GCWCGSAFlAwQBAgQQijMNrkSU3jGJLHP90tc81ASCBNATKUMZxgfrCN67P3V6\n"
-          + "/5iqKfoPcvmV+V1XJT9f/Y3YezMOvE9pAUtLv30N7HBcwadwbqsmfqYh7lVDOvpB\n"
-          + "nyAayr5U0zZtfHS66XinZdtBc8UbMu2pb6DQ0pzrhG/tmo09QD7JDqs2Lq0Z88a4\n"
-          + "2H5LbgAJMgpFwGVLPR/ZMmRe5zrsOjfmmVnt10hTarKVnjM/pc0S34TpnLlMKSjR\n"
-          + "fIsqLFNAg9vZP2WHUChmGUNe9YaNZfe1r6S1TiPc5M0y62H996rYIR8FKxys6lxb\n"
-          + "s0bFoYd0YWA50hDcXltmwyQPYBBRwUbRjLeQTUcR0W75bh34Ee/K9pqfYtQTf5Tw\n"
-          + "+DiVv9FgDW9bIi30q1iovh7lboBUSWS2X4dfN1f/CDOFdeEm0Mi6yE/qqGDpjVrF\n"
-          + "88xpmLnCy4WvKu97f4CLiL5fsVQu3yP9T6aldP+NOq4qXg96kpjwBjQDjCYRMpCi\n"
-          + "Z8OHhoWa10EzRM8p5e4DiXco5YzVd5CpdxshKxT/sCvpHmWpVjzruANTXNQXXy6N\n"
-          + "kWO+5PT9nSpb7+GOHruWrImkyytt6Yq53Rli6FCf22cgLxHaIN6mCbQuxb6InVxh\n"
-          + "h1a7ccvbR2d7rk9FVbrfLSQ5vEWJnYFpoxWvrQGwKQHaYHbYfqH/oouaiN1vDrzu\n"
-          + "NW0+y+lSYrMy+Rxv+vPD5EBt7aY1tj9sgrcWcHlSpkoyAttmWgmoF5TGF4A8M76r\n"
-          + "+dzAdkkxqxGUP6prdkGvleWCwRnrmEXyKYILc2MtJxG45bD/XpSQKitkyRnXFF+J\n"
-          + "MpdYCZES0NgFauPxVgnl4xkKjcpdV6e3HaJHatWY1/D6M1vIH0n/RT8uQhu/YpzF\n"
-          + "hvsUsc+E6/jCN/P4mN6FlCugBzEouIseRhdXIL9qzQdSE1MmVzERlFNkNeqD+j+I\n"
-          + "LvktK2s/VhBZxAf2yU9t4a92wQRaQyLPlsB/KFJ8tbGQGpgu1OqiJ4BcKlFBp2Jq\n"
-          + "p4ivjcD+S4aKzMyQI9fMEyxOrHN0sfAHq2VBDS2QkcYWhe6qlckkDQJ7tWRhqzmi\n"
-          + "k6LFGnjbA6RPnABJ9N2/JX4bEzlOeODiMXD81FLeHTlNUBgSNx8Itwm3DU6Jnv49\n"
-          + "PqWICTMHWmXUkAwLbjydRBO6MVUQUNVpcM/dl5M/x0KPsghX7gXoXiPKIe9xrq6w\n"
-          + "FcXZa2hED/9EJLLz6WvMtqX1BcrxA+wbueiTN8y+1GI6UkvTg42Iw//2t4qKwMv+\n"
-          + "Q/jadrmxIgcyTe5GVxGUWmC336vW3bz2Vc7IEWDUcX0x+XLaw4ByKbKx2bti1mcN\n"
-          + "zz/r2GZw1BtdWVCFQw2NfF4rLM5GCbrjF4XG5RB0Lbp1Q2XqXXRKJXR6kZuTgDgU\n"
-          + "dFwGqhP1mwCGs9/Pg0AfGvqn+jcGipVevx/OFEiu+eK6VNYz4vAt5gU3sLyUwcpC\n"
-          + "2vUN8Kh4TY4J4oJNeDibWU//qu35c+SoQQPC1L850ZCFsXoGg9TCGuhG97KlZxNw\n"
-          + "i+CJHKTOWpPwLiPrVPtIp+Q6X8sRibLBdetXhq0P6Nh4mRew6iUg1DzClkK5/jFP\n"
-          + "Tt5sUjnIV974hjP7F2e64scWXAIoEDYPdhhP/uLbxUmy0Cr9Jt8uUEGb+H7nWOUe\n"
-          + "1MYSgvlF9eUm6e21FySl6H1kgw==\n"
-          + "-----END ENCRYPTED PRIVATE KEY-----\n";
+  // protected static final String privateKey1 =
+  //     "-----BEGIN ENCRYPTED PRIVATE KEY-----\n"
+  //         + "MIIFHzBJBgkqhkiG9w0BBQ0wPDAbBgkqhkiG9w0BBQwwDgQIe1dDIKI2EhwCAggA\n"
+  //         + "MB0GCWCGSAFlAwQBAgQQijMNrkSU3jGJLHP90tc81ASCBNATKUMZxgfrCN67P3V6\n"
+  //         + "/5iqKfoPcvmV+V1XJT9f/Y3YezMOvE9pAUtLv30N7HBcwadwbqsmfqYh7lVDOvpB\n"
+  //         + "nyAayr5U0zZtfHS66XinZdtBc8UbMu2pb6DQ0pzrhG/tmo09QD7JDqs2Lq0Z88a4\n"
+  //         + "2H5LbgAJMgpFwGVLPR/ZMmRe5zrsOjfmmVnt10hTarKVnjM/pc0S34TpnLlMKSjR\n"
+  //         + "fIsqLFNAg9vZP2WHUChmGUNe9YaNZfe1r6S1TiPc5M0y62H996rYIR8FKxys6lxb\n"
+  //         + "s0bFoYd0YWA50hDcXltmwyQPYBBRwUbRjLeQTUcR0W75bh34Ee/K9pqfYtQTf5Tw\n"
+  //         + "+DiVv9FgDW9bIi30q1iovh7lboBUSWS2X4dfN1f/CDOFdeEm0Mi6yE/qqGDpjVrF\n"
+  //         + "88xpmLnCy4WvKu97f4CLiL5fsVQu3yP9T6aldP+NOq4qXg96kpjwBjQDjCYRMpCi\n"
+  //         + "Z8OHhoWa10EzRM8p5e4DiXco5YzVd5CpdxshKxT/sCvpHmWpVjzruANTXNQXXy6N\n"
+  //         + "kWO+5PT9nSpb7+GOHruWrImkyytt6Yq53Rli6FCf22cgLxHaIN6mCbQuxb6InVxh\n"
+  //         + "h1a7ccvbR2d7rk9FVbrfLSQ5vEWJnYFpoxWvrQGwKQHaYHbYfqH/oouaiN1vDrzu\n"
+  //         + "NW0+y+lSYrMy+Rxv+vPD5EBt7aY1tj9sgrcWcHlSpkoyAttmWgmoF5TGF4A8M76r\n"
+  //         + "+dzAdkkxqxGUP6prdkGvleWCwRnrmEXyKYILc2MtJxG45bD/XpSQKitkyRnXFF+J\n"
+  //         + "MpdYCZES0NgFauPxVgnl4xkKjcpdV6e3HaJHatWY1/D6M1vIH0n/RT8uQhu/YpzF\n"
+  //         + "hvsUsc+E6/jCN/P4mN6FlCugBzEouIseRhdXIL9qzQdSE1MmVzERlFNkNeqD+j+I\n"
+  //         + "LvktK2s/VhBZxAf2yU9t4a92wQRaQyLPlsB/KFJ8tbGQGpgu1OqiJ4BcKlFBp2Jq\n"
+  //         + "p4ivjcD+S4aKzMyQI9fMEyxOrHN0sfAHq2VBDS2QkcYWhe6qlckkDQJ7tWRhqzmi\n"
+  //         + "k6LFGnjbA6RPnABJ9N2/JX4bEzlOeODiMXD81FLeHTlNUBgSNx8Itwm3DU6Jnv49\n"
+  //         + "PqWICTMHWmXUkAwLbjydRBO6MVUQUNVpcM/dl5M/x0KPsghX7gXoXiPKIe9xrq6w\n"
+  //         + "FcXZa2hED/9EJLLz6WvMtqX1BcrxA+wbueiTN8y+1GI6UkvTg42Iw//2t4qKwMv+\n"
+  //         + "Q/jadrmxIgcyTe5GVxGUWmC336vW3bz2Vc7IEWDUcX0x+XLaw4ByKbKx2bti1mcN\n"
+  //         + "zz/r2GZw1BtdWVCFQw2NfF4rLM5GCbrjF4XG5RB0Lbp1Q2XqXXRKJXR6kZuTgDgU\n"
+  //         + "dFwGqhP1mwCGs9/Pg0AfGvqn+jcGipVevx/OFEiu+eK6VNYz4vAt5gU3sLyUwcpC\n"
+  //         + "2vUN8Kh4TY4J4oJNeDibWU//qu35c+SoQQPC1L850ZCFsXoGg9TCGuhG97KlZxNw\n"
+  //         + "i+CJHKTOWpPwLiPrVPtIp+Q6X8sRibLBdetXhq0P6Nh4mRew6iUg1DzClkK5/jFP\n"
+  //         + "Tt5sUjnIV974hjP7F2e64scWXAIoEDYPdhhP/uLbxUmy0Cr9Jt8uUEGb+H7nWOUe\n"
+  //         + "1MYSgvlF9eUm6e21FySl6H1kgw==\n"
+  //         + "-----END ENCRYPTED PRIVATE KEY-----\n";
 
   protected static final String privateKey2 =
       "-----BEGIN PRIVATE KEY-----\n"
@@ -154,4 +159,38 @@ public class TestSignBase {
           + "KWHu/XSeFDzGfCsZiGWECY0rpEKjvI8OBYljTKmB/14Iz51m8jgZRvTaoauUUpZi\n"
           + "w+4PGMrpoKCGFBE4ucT7AvY=\n"
           + "-----END PRIVATE KEY-----\n";
+
+  protected static final String serviceAccountKey1 =
+      "{\n"
+          + "  \"type\": \"service_account\",\n"
+          + "  \"project_id\": \"project-apigee\",\n"
+          + "  \"private_key_id\": \"0bb2933e52e4dffa0958ba53ef9226c2a573add1\",\n"
+          + "  \"private_key\": \""
+          + privateKey2.replaceAll("\n", "\\\\n")
+          + "\",\n"
+          + "  \"client_email\": \"account-223456789@project-apigee.iam.gserviceaccount.com\",\n"
+          + "  \"client_id\": \"112345888385643765817\",\n"
+          + "  \"auth_uri\": \"https://accounts.google.com/o/oauth2/auth\",\n"
+          + "  \"token_uri\": \"https://accounts.google.com/o/oauth2/token\",\n"
+          + "  \"auth_provider_x509_cert_url\": \"https://www.googleapis.com/oauth2/v1/certs\",\n"
+          + "  \"client_x509_cert_url\": \"https://www.googleapis.com/robot/v1/metadata/x509/account-223456789%40project-apigee.iam.gserviceaccount.com\"\n"
+          + "}\n";
+
+  protected static String getKeyFileContents(String keyfile) throws Exception {
+    Path path = Paths.get(testKeyDir, keyfile);
+    if (!Files.exists(path)) {
+      return null;
+    }
+    return new String(Files.readAllBytes(path));
+  }
+
+  protected static String getKeyFileContents() throws Exception {
+    File testDir = new File(testKeyDir);
+    if (!testDir.exists()) {
+      throw new IllegalStateException("no test keys directory.");
+    }
+    String contents = getKeyFileContents("credentials--DO-NOT-COMMIT.json");
+    if (contents == null) contents = getKeyFileContents("credentials.json");
+    return contents;
+  }
 }

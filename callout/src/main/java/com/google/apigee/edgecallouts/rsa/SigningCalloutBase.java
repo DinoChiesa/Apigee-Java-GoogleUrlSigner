@@ -16,6 +16,7 @@
 package com.google.apigee.edgecallouts.rsa;
 
 import com.apigee.flow.message.MessageContext;
+import com.google.apigee.json.JavaxJson;
 import com.google.apigee.time.TimeResolver;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -31,14 +32,15 @@ import java.security.interfaces.RSAPrivateCrtKey;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPublicKeySpec;
-import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.AbstractMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.crypto.CryptoException;
 import org.bouncycastle.crypto.digests.SHA256Digest;
@@ -144,15 +146,15 @@ public abstract class SigningCalloutBase {
     throw new Exception("unknown object type when decoding private key");
   }
 
-  protected KeyPair getPrivateKey(MessageContext msgCtxt) throws Exception {
-    String privateKeyPemString = getSimpleRequiredProperty("private-key", msgCtxt);
-    privateKeyPemString = privateKeyPemString.trim();
-
-    // clear any leading whitespace on each line
-    privateKeyPemString = privateKeyPemString.replaceAll("([\\r|\\n] +)", "\n");
-    String privateKeyPassword = getSimpleOptionalProperty("private-key-password", msgCtxt);
-    return readKeyPair(privateKeyPemString, privateKeyPassword);
-  }
+  // protected KeyPair getPrivateKey(MessageContext msgCtxt) throws Exception {
+  //   String privateKeyPemString = getSimpleRequiredProperty("private-key", msgCtxt);
+  //   privateKeyPemString = privateKeyPemString.trim();
+  //
+  //   // clear any leading whitespace on each line
+  //   privateKeyPemString = privateKeyPemString.replaceAll("([\\r|\\n] +)", "\n");
+  //   String privateKeyPassword = getSimpleOptionalProperty("private-key-password", msgCtxt);
+  //   return readKeyPair(privateKeyPemString, privateKeyPassword);
+  // }
 
   protected long getExpiry(final MessageContext msgCtxt) throws Exception {
     return getExpiry(msgCtxt, Instant.now(), 0);
@@ -195,10 +197,9 @@ public abstract class SigningCalloutBase {
     msgCtxt.setVariable(varName("duration"), Long.toString(durationSeconds));
     msgCtxt.setVariable(varName("expiration"), Long.toString(expiryEpochSeconds));
     msgCtxt.setVariable(
-         varName("expiration_ISO"),
-         ZonedDateTime
-         .ofInstant(Instant.ofEpochSecond(expiryEpochSeconds), ZoneOffset.UTC)
-         .format(DateTimeFormatter.ISO_INSTANT));
+        varName("expiration_ISO"),
+        ZonedDateTime.ofInstant(Instant.ofEpochSecond(expiryEpochSeconds), ZoneOffset.UTC)
+            .format(DateTimeFormatter.ISO_INSTANT));
 
     return expiryEpochSeconds;
   }
@@ -207,11 +208,10 @@ public abstract class SigningCalloutBase {
     String resourceString = getSimpleOptionalProperty("resource", msgCtxt);
     if (resourceString == null) {
       try {
-      String bucket = getSimpleRequiredProperty("bucket", msgCtxt);
-      String object = getSimpleRequiredProperty("object", msgCtxt);
-      resourceString = "/" + bucket + "/" + object;
-      }
-      catch (IllegalStateException e) {
+        String bucket = getSimpleRequiredProperty("bucket", msgCtxt);
+        String object = getSimpleRequiredProperty("object", msgCtxt);
+        resourceString = "/" + bucket + "/" + object;
+      } catch (IllegalStateException e) {
         throw new IllegalStateException("specify either resource or bucket + object");
       }
     }
@@ -219,16 +219,36 @@ public abstract class SigningCalloutBase {
     return resourceString;
   }
 
+  protected Map<String, String> getServiceAccountKey(final MessageContext msgCtxt)
+      throws Exception {
+    String serviceAccountJson = getSimpleRequiredProperty("service-account-key", msgCtxt);
+    @SuppressWarnings("unchecked")
+    Map<String, String> serviceAccountInfo =
+        ((Map<String, Object>) JavaxJson.fromJson(serviceAccountJson, Map.class))
+            .entrySet().stream()
+                .map(
+                    e ->
+                        new AbstractMap.SimpleImmutableEntry<>(e.getKey(), e.getValue().toString()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+    String accountType = serviceAccountInfo.get("type");
+    if (accountType == null || !accountType.equals("service_account"))
+      throw new IllegalStateException("the service account key data is invalid");
+
+    if (serviceAccountInfo.get("client_email") == null)
+      throw new IllegalStateException("the service account key data is missing the client_email");
+
+    if (serviceAccountInfo.get("private_key") == null)
+      throw new IllegalStateException("the service account key data is missing the private_key");
+
+    return serviceAccountInfo;
+  }
+
   protected boolean getDebug() {
     String value = (String) this.properties.get("debug");
     if (value == null) return false;
     if (value.trim().toLowerCase().equals("true")) return true;
     return false;
-  }
-
-  protected String getAccessId(MessageContext msgCtxt) throws Exception {
-    String accessId = getSimpleOptionalProperty("access-id", msgCtxt);
-    return (accessId == null) ? "GOOGLE_ACCESS_STORAGE_ID" : accessId;
   }
 
   protected String getSimpleOptionalProperty(String propName, MessageContext msgCtxt)

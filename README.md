@@ -133,17 +133,21 @@ Within the Properties, you can specify the various inputs for the signature.
 
 | name                 | required | meaning                                                           |
 | -------------------- | -------- | ----------------------------------------------------------------- |
-| private-key          | required | a PEM-encoded string containing an RSA private key                |
-| private-key-password | optional | the plaintext password for the key, if any.                       |
+| service-account-key  | required | the contents of the [service account key file](https://cloud.google.com/iam/docs/creating-managing-service-account-keys) from Google. This is a JSON string containing the service account information, includign the private key and client_email.       |
 | verb                 | required | the verb: GET, POST, etc                                          |
-| resource             | required | the resource string, eg: /example-bucket/cat-pics/tabby.jpeg      |
+| resource             | optional | the resource string, eg: /example-bucket/cat-pics/tabby.jpeg      |
+| bucket               | optional | the bucket name, eg example-bucket                                |
+| object               | optional | the object, eg. cat-pics/tabby.jpeg                               |
 | expires-in           | optional | a string representing _relative_ expiry, eg. 10s, 5m, 2h, 3d.  With no character suffix, interpreted as "seconds". |
 | expiry               | optional | a string representing expiry, in absolute seconds-since-epoch.    |
 | content-md5          | optional | the MD5 checksum the client must pass.                            |
 | content-type         | optional | content-type header, as above.                                    |
-| access-id            | optional | the GOOGLE_ACCESS_STORAGE_ID. Used for constructing the full URL. |
+
 
 Pass either `expires-in` or `expiry`. If you pass both, `expires-in` takes precedence.
+
+Pass either `resource` or the combination of `bucket` and `object`.  If you pass
+both, the logic will use what you pass for `resource`.
 
 Today it is not possible to pass canonicalized extension headers.
 
@@ -159,11 +163,12 @@ The output of the callout is a set of context variables:
 | sign_expiration_ISO      | An ISO-formatted string for the expiration. For diagnostics and human consumption. |
 
 
-## Example
+## Examples
 
 See the attached [bundle](./bundle) for a working API Proxy.
 To use it, deploy it to any org and environment, then invoke it like this:
 
+### V4 Example
 ```
 ORG=myorg
 ENV=myenv
@@ -192,9 +197,9 @@ Connection: keep-alive
 }
 ```
 
-This signature is the right format, but won't be valid. That's because the
+This is just a sample. This signature is the right format, but won't be valid. That's because the
 bucket name and object name are fake, and the key used to sign is not registered
-with GCS. They are sample data.
+with GCS. They bucket, object, and key are all sample data.
 
 To actually produce a valid signed url, you need to invoke the callout with
 valid data for the bucket, object and key. If you have downloaded a service
@@ -202,6 +207,61 @@ account .json file, and you have a GCS bucket and object, try it like this:
 
 ```
 curl -i https://$ORG-$ENV.apigee.net/signurl/v4-t3 \
+  -H content-type:application/json \
+  -H gcs-bucket:my-gcs-bucket-name \
+  -H gcs-object:my-gcs-object-name \
+  -X POST \
+  --data-binary @service-account-credentials.json
+
+```
+
+The resulting URL will be usable in a browser.
+
+This is only a demonstration. You wouldn't do this in a production system. You wouldn't have the client send
+the key to Apigee to enable Apigee to compute the signature; it wouldn't make
+sense. Sending the credentials to Apigee is done only for the purposes of
+demonstration. These credentials should be stored in the encrypted KVM, as a
+secret known only to Apigee.
+
+
+### V2 Example
+```
+ORG=myorg
+ENV=myenv
+curl -i https://$ORG-$ENV.apigee.net/signurl/v2-t1
+```
+
+You should see a signature upon output:
+
+```
+HTTP/1.1 200 OK
+Date: Fri, 25 Oct 2019 02:34:52 GMT
+Content-Type: application/json
+Content-Length: 1125
+Connection: keep-alive
+
+{
+  "status" : "ok",
+  "resource" : "/example-bucket/cat-pics/tabby.png",
+  "signature" : "SDdtBiLmQpxWCdZnc3dhtG3fnrnWkMTrdqcn1xd0SYrehUjNLmUakSSRvFAsh5ZWPnyvRqPgExkBYM%2BjjhRAtVQuX6NinF9gtGfNDEk2uH%2BpIAhu%2BnPNlqEtanO7CGM7ARn%2FuSsWmVib%2FY2ihF%2FVtjNzfQyXd3Z%2B4xFkxIpz2SnKTBwcxS%2BGOw7FB5aUiKm3Y6%2FtfFiByDWcJFNZoUTMCMdHrZgovClMAXGVDnFeH99ud9jMJLtv5m8nefrLEizFqlk%2B5T4aMbiOzSdZXAqrGrfzhHiK53KR59eTdGdmSrDNrhLKXe6FhBmyw9BefNSFQie9dmxqv3jEx5uqVObxkA%3D%3D",
+  "expiration" : {
+    "seconds" : 1571971492,
+    "relative" : 600,
+    "ISO" : "2019-10-25T02:44:52Z"
+  },
+  "signedurl" : "https://storage.googleapis.com/example-bucket/cat-pics/tabby.png?GoogleAccessId=account-223456789@project-apigee.iam.gserviceaccount.com&Expires=1571971492&Signature=SDdtBiLmQpxWCdZnc3dhtG3fnrnWkMTrdqcn1xd0SYrehUjNLmUakSSRvFAsh5ZWPnyvRqPgExkBYM%2BjjhRAtVQuX6NinF9gtGfNDEk2uH%2BpIAhu%2BnPNlqEtanO7CGM7ARn%2FuSsWmVib%2FY2ihF%2FVtjNzfQyXd3Z%2B4xFkxIpz2SnKTBwcxS%2BGOw7FB5aUiKm3Y6%2FtfFiByDWcJFNZoUTMCMdHrZgovClMAXGVDnFeH99ud9jMJLtv5m8nefrLEizFqlk%2B5T4aMbiOzSdZXAqrGrfzhHiK53KR59eTdGdmSrDNrhLKXe6FhBmyw9BefNSFQie9dmxqv3jEx5uqVObxkA%3D%3D"
+}
+
+```
+
+As with the V4 "sample" signature above, this signature is the right format, but won't be valid. That's because the
+bucket name and object name are fake, and the key used to sign is not registered
+with GCS. They are sample data.
+
+To actually produce a valid signed url, provide all the necessary inputs explicitly:
+
+```
+curl -i https://$ORG-$ENV.apigee.net/signurl/v2-t3 \
   -H content-type:application/json \
   -H gcs-bucket:my-gcs-bucket-name \
   -H gcs-object:my-gcs-object-name \

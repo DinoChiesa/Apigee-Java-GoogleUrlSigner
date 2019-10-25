@@ -1,7 +1,6 @@
 <JavaCallout name='Java-URL-Sign-V2-1'>
   <Properties>
-    <Property name='private-key'>{my_private_key}</Property>
-    <Property name='private-key-password'>{my_private_key_password}</Property>
+    <Property name='service-account-key'>{my_service_account_key}</Property>
     <Property name='verb'>GET</Property>
     <Property name='resource'>{my_resource}</Property>
     <!-- relative expiry -->

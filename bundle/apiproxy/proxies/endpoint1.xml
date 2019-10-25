@@ -66,6 +66,33 @@
       <Condition>(proxy.pathsuffix MatchesPath "/v2-t2") and (request.verb = "GET")</Condition>
     </Flow>
 
+    <Flow name="version2-test3">
+      <Request>
+        <Step>
+          <Name>RF-InvalidRequest</Name>
+          <Condition>request.header.content-type != "application/json"</Condition>
+        </Step>
+        <Step>
+          <Name>RF-InvalidRequest</Name>
+          <Condition>request.header.gcs-bucket = null</Condition>
+        </Step>
+        <Step>
+          <Name>RF-InvalidRequest</Name>
+          <Condition>request.header.gcs-object = null</Condition>
+        </Step>
+        <Step>
+          <Name>Java-URL-Sign-V2-3</Name>
+        </Step>
+      </Request>
+      <Response>
+        <Step>
+          <Name>AM-Response</Name>
+        </Step>
+      </Response>
+      <Condition>(proxy.pathsuffix MatchesPath "/v2-t3") and (request.verb = "POST")</Condition>
+    </Flow>
+
+
     <Flow name="version4-test1">
       <Request>
         <Step>
@@ -113,9 +140,6 @@
         <Step>
           <Name>RF-InvalidRequest</Name>
           <Condition>request.header.gcs-object = null</Condition>
-        </Step>
-        <Step>
-          <Name>AM-Variables</Name>
         </Step>
         <Step>
           <Name>Java-URL-Sign-V4-3</Name>

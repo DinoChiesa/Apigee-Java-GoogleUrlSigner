@@ -20,7 +20,6 @@ import com.apigee.flow.execution.ExecutionResult;
 import com.apigee.flow.execution.IOIntensive;
 import com.apigee.flow.execution.spi.Execution;
 import com.apigee.flow.message.MessageContext;
-import com.google.apigee.json.JavaxJson;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -29,7 +28,6 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -52,12 +50,10 @@ public class V4SignedUrlCallout extends SigningCalloutBase implements Execution 
 
   private String encodeURIComponent(String s) {
     try {
-      return URLEncoder.encode(s,"UTF-8").replaceAll("\\+", "%20");
+      return URLEncoder.encode(s, "UTF-8").replaceAll("\\+", "%20");
+    } catch (UnsupportedEncodingException e) {
+      throw new RuntimeException(e);
     }
-    catch(UnsupportedEncodingException e) {
-        throw new RuntimeException(e);
-    }
-
   }
 
   private String headersToString(Map<String, String> headers) {
@@ -112,7 +108,7 @@ public class V4SignedUrlCallout extends SigningCalloutBase implements Execution 
   }
 
   private String getCredentialScope(final MessageContext msgCtxt) {
-String nowFormatted = msgCtxt.getVariable(varName("now_formatted"));
+    String nowFormatted = msgCtxt.getVariable(varName("now_formatted"));
     return nowFormatted.substring(0, 8) + "/us/storage/goog4_request";
   }
 
@@ -220,36 +216,11 @@ String nowFormatted = msgCtxt.getVariable(varName("now_formatted"));
     return stringToSign;
   }
 
-  private Map<String, String> getServiceAccountKey(final MessageContext msgCtxt) throws Exception {
-    String serviceAccountJson = getSimpleRequiredProperty("service-account-key", msgCtxt);
-    @SuppressWarnings("unchecked")
-    Map<String, String> serviceAccountInfo =
-        ((Map<String, Object>) JavaxJson.fromJson(serviceAccountJson, Map.class))
-            .entrySet().stream()
-                .map(
-                    e ->
-                        new AbstractMap.SimpleImmutableEntry<>(e.getKey(), e.getValue().toString()))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-    String accountType = serviceAccountInfo.get("type");
-    if (accountType == null || !accountType.equals("service_account"))
-      throw new IllegalStateException("the service account key data is invalid");
-
-    if (serviceAccountInfo.get("client_email") == null)
-      throw new IllegalStateException("the service account key data is missing the client_email");
-
-    if (serviceAccountInfo.get("private_key") == null)
-      throw new IllegalStateException("the service account key data is missing the private_key");
-
-    return serviceAccountInfo;
-  }
-
   public ExecutionResult execute(final MessageContext msgCtxt, final ExecutionContext execContext) {
     try {
       final Instant now = Instant.now();
       msgCtxt.setVariable(varName("now"), now);
-      final String currentTime =
-          ZonedDateTime.ofInstant(now, ZoneOffset.UTC).format(formatter);
+      final String currentTime = ZonedDateTime.ofInstant(now, ZoneOffset.UTC).format(formatter);
       msgCtxt.setVariable(varName("now_formatted"), currentTime);
 
       Map<String, String> serviceAccountInfo = getServiceAccountKey(msgCtxt);

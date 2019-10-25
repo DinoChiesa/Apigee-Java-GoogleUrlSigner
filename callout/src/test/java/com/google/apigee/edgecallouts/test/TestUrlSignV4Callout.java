@@ -27,20 +27,6 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 public class TestUrlSignV4Callout extends TestSignBase {
-    private final static String testKeyDir = "src/test/resources/keys";
-
-  private String serviceAccountKey1 = "{\n"
-+"  \"type\": \"service_account\",\n"
-+"  \"project_id\": \"project-apigee\",\n"
-+"  \"private_key_id\": \"0bb2933e52e4dffa0958ba53ef9226c2a573add1\",\n"
-    +"  \"private_key\": \"" + privateKey2.replaceAll("\n", "\\\\n") + "\",\n"
-+"  \"client_email\": \"account-223456789@project-apigee.iam.gserviceaccount.com\",\n"
-+"  \"client_id\": \"112345888385643765817\",\n"
-+"  \"auth_uri\": \"https://accounts.google.com/o/oauth2/auth\",\n"
-+"  \"token_uri\": \"https://accounts.google.com/o/oauth2/token\",\n"
-+"  \"auth_provider_x509_cert_url\": \"https://www.googleapis.com/oauth2/v1/certs\",\n"
-+"  \"client_x509_cert_url\": \"https://www.googleapis.com/robot/v1/metadata/x509/account-223456789%40project-apigee.iam.gserviceaccount.com\"\n"
-+"}\n";
 
   @Test
   public void emptyServiceAccountKey() throws Exception {
@@ -231,25 +217,6 @@ public class TestUrlSignV4Callout extends TestSignBase {
     System.out.println("duration: " + duration);
     System.out.println("=========================================================");
   }
-
-    private String getKeyFileContents(String keyfile) throws Exception {
-        Path path = Paths.get(testKeyDir, keyfile);
-        if (!Files.exists(path)) {
-            return null;
-        }
-        return new String(Files.readAllBytes(path));
-    }
-
-    private String getKeyFileContents() throws Exception {
-        File testDir = new File(testKeyDir);
-        if (!testDir.exists()) {
-            throw new IllegalStateException("no test keys directory.");
-        }
-        String contents = getKeyFileContents("credentials--DO-NOT-COMMIT.json");
-        if (contents == null)
-            contents = getKeyFileContents("credentials.json");
-        return contents;
-    }
 
 
   @Test

@@ -65,16 +65,22 @@ public class V2SignedUrlCallout extends SigningCalloutBase implements Execution 
     return stringToSign;
   }
 
+  protected String getAccessId(final MessageContext msgCtxt, final Map<String, String> serviceAccountInfo) throws Exception {
+    String accessId = getSimpleOptionalProperty("access-id", msgCtxt);
+    return (accessId == null) ? serviceAccountInfo.get("client_email") : accessId;
+  }
+
   public ExecutionResult execute(final MessageContext msgCtxt, final ExecutionContext execContext) {
     try {
       String signingBase = getSigningBase(msgCtxt);
-      KeyPair keypair = getPrivateKey(msgCtxt);
+      Map<String, String> serviceAccountInfo = getServiceAccountKey(msgCtxt);
+      KeyPair keypair = readKeyPair(serviceAccountInfo.get("private_key"), null);
       byte[] resultBytes = sign_RSA_SHA256(signingBase, keypair);
       String signatureVar = varName("signature");
       String signature = Base64.toBase64String(resultBytes);
       msgCtxt.setVariable(signatureVar + "_unencoded", signature);
       msgCtxt.setVariable(signatureVar, URLEncoder.encode(signature, "UTF-8"));
-      String accessId = getAccessId(msgCtxt);
+      String accessId = getAccessId(msgCtxt, serviceAccountInfo);
       msgCtxt.setVariable(varName("accessid"), accessId);
       msgCtxt.setVariable(varName("signedurl"), resolvePropertyValue(V2_SIGNED_URL_SPEC, msgCtxt));
       return ExecutionResult.SUCCESS;
