@@ -168,8 +168,7 @@ String nowFormatted = msgCtxt.getVariable(varName("now_formatted"));
             .collect(Collectors.joining(";"));
 
     String verb = getSimpleRequiredProperty("verb", msgCtxt);
-    String resource = getSimpleRequiredProperty("resource", msgCtxt);
-    msgCtxt.setVariable(varName("resource"), resource);
+    String resource = getResource(msgCtxt);
     String canonicalQueryString =
         queryToString(getCanonicalQuery(msgCtxt, signedHeaders, clientEmail));
     msgCtxt.setVariable(varName("canonical_query_string"), canonicalQueryString);
@@ -188,7 +187,9 @@ String nowFormatted = msgCtxt.getVariable(varName("now_formatted"));
             + "\n"
             + signedHeaders
             + "\n"
-            + (payload != null ? payload : "");
+            + (payload != null ? payload : "UNSIGNED-PAYLOAD");
+
+    msgCtxt.setVariable(varName("canonical_request"), canonicalRequest);
 
     SHA256Digest digest = new SHA256Digest();
     byte[] messageBytes = canonicalRequest.getBytes(StandardCharsets.UTF_8);
@@ -209,13 +210,13 @@ String nowFormatted = msgCtxt.getVariable(varName("now_formatted"));
     String stringToSign =
         rsaSigningAlgorithm
             + "\n"
-            + msgCtxt.getVariable(varName("now"))
+            + msgCtxt.getVariable(varName("now_formatted"))
             + "\n"
             + getCredentialScope(msgCtxt)
             + "\n"
             + getHashedCanonicalRequest(msgCtxt, serviceAccountInfo);
 
-    msgCtxt.setVariable(varName("signing_string"), stringToSign);
+    msgCtxt.setVariable(varName("string_to_sign"), stringToSign);
     return stringToSign;
   }
 

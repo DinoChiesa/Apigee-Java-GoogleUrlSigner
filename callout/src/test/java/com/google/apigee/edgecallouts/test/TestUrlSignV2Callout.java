@@ -68,7 +68,7 @@ public class TestUrlSignV2Callout extends TestSignBase {
 
   @Test
   public void missingResource() throws Exception {
-    String expectedError = "resource resolves to an empty string";
+    String expectedError = "specify either resource or bucket + object";
     Map<String, String> props = new HashMap<String, String>();
     props.put("verb", "GET");
     props.put("expires-in", "1d");

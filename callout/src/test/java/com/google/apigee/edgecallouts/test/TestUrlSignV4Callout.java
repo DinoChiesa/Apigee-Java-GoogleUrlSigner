@@ -17,12 +17,17 @@ package com.google.apigee.edgecallouts.test;
 
 import com.apigee.flow.execution.ExecutionResult;
 import com.google.apigee.edgecallouts.rsa.V4SignedUrlCallout;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 public class TestUrlSignV4Callout extends TestSignBase {
+    private final static String testKeyDir = "src/test/resources/keys";
 
   private String serviceAccountKey1 = "{\n"
 +"  \"type\": \"service_account\",\n"
@@ -165,6 +170,27 @@ public class TestUrlSignV4Callout extends TestSignBase {
   }
 
   @Test
+  public void noResource() throws Exception {
+    String expectedError = "specify either resource or bucket + object";
+    Map<String, String> props = new HashMap<String, String>();
+    props.put("service-account-key", "{\"type\" : \"service_account\", \"client_email\": \"foo\", \"private_key\" : \"this is not a private key\"}");
+    props.put("verb", "GET");
+    props.put("expires-in", "10m");
+    //props.put("resource", "/foo/bar");
+
+    V4SignedUrlCallout callout = new V4SignedUrlCallout(props);
+
+    // execute and retrieve output
+    ExecutionResult actualResult = callout.execute(msgCtxt, exeCtxt);
+    Assert.assertEquals(actualResult, ExecutionResult.ABORT, "result not as expected");
+    Object errorOutput = msgCtxt.getVariable("sign_error");
+    Assert.assertNotNull(errorOutput, "errorOutput");
+    Assert.assertEquals(errorOutput, expectedError, "error not as expected");
+    Object stacktrace = msgCtxt.getVariable("sign_stacktrace");
+    Assert.assertNull(stacktrace, "stacktrace");
+  }
+
+  @Test
   public void goodResult1() throws Exception {
     Map<String, String> props = new HashMap<String, String>();
     props.put("service-account-key", serviceAccountKey1);
@@ -205,4 +231,70 @@ public class TestUrlSignV4Callout extends TestSignBase {
     System.out.println("duration: " + duration);
     System.out.println("=========================================================");
   }
+
+    private String getKeyFileContents(String keyfile) throws Exception {
+        Path path = Paths.get(testKeyDir, keyfile);
+        if (!Files.exists(path)) {
+            return null;
+        }
+        return new String(Files.readAllBytes(path));
+    }
+
+    private String getKeyFileContents() throws Exception {
+        File testDir = new File(testKeyDir);
+        if (!testDir.exists()) {
+            throw new IllegalStateException("no test keys directory.");
+        }
+        String contents = getKeyFileContents("credentials--DO-NOT-COMMIT.json");
+        if (contents == null)
+            contents = getKeyFileContents("credentials.json");
+        return contents;
+    }
+
+
+  @Test
+  public void goodResult2() throws Exception {
+    Map<String, String> props = new HashMap<String, String>();
+    props.put("service-account-key", getKeyFileContents());
+    props.put("verb", "GET");
+    props.put("expires-in", "10m");
+    props.put("bucket", "images-next2019-hyb211-appspot-com");
+    props.put("object", "screenshot-20190927-171326.png");
+
+    V4SignedUrlCallout callout = new V4SignedUrlCallout(props);
+
+    // execute and retrieve output
+    ExecutionResult actualResult = callout.execute(msgCtxt, exeCtxt);
+    Assert.assertEquals(actualResult, ExecutionResult.SUCCESS, "result not as expected");
+    Object errorOutput = msgCtxt.getVariable("sign_error");
+    Assert.assertNull(errorOutput, "errorOutput");
+    Object stacktrace = msgCtxt.getVariable("sign_stacktrace");
+    Assert.assertNull(stacktrace, "stacktrace");
+
+    Object signature = msgCtxt.getVariable("sign_signature");
+    Assert.assertNotNull(signature, "signature");
+
+    Object expiration = msgCtxt.getVariable("sign_expiration");
+    Assert.assertNotNull(expiration, "expiration");
+
+    Object duration = msgCtxt.getVariable("sign_duration");
+    Assert.assertNotNull(duration, "duration");
+    Assert.assertEquals(Integer.parseInt((String)duration), 600);
+
+    Object expirationISO = msgCtxt.getVariable("sign_expiration_ISO");
+    Assert.assertNotNull(expirationISO, "expiration_ISO");
+
+    String signedUrl = (String) msgCtxt.getVariable("sign_signedurl");
+    Assert.assertNotNull(signedUrl, "signedUrl");
+
+    System.out.printf("\n****\n");
+    System.out.printf("canonical request: %s\n\n", (String) msgCtxt.getVariable("sign_canonical_request"));
+    System.out.printf("string-to-sign: %s\n\n", (String) msgCtxt.getVariable("sign_string_to_sign"));
+    System.out.printf("signature: %s\n\n", signature);
+    System.out.printf("signedUrl: %s\n", signedUrl);
+    System.out.printf("expiry: %s\n", expirationISO);
+    System.out.printf("duration: %s\n", duration);
+    System.out.printf("=========================================================\n");
+  }
+
 }

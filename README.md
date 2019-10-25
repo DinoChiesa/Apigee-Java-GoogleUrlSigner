@@ -28,7 +28,7 @@ details see [this link](https://stackoverflow.com/q/58145068/48082).
 
 Suppose you need to generate a URL for Google Cloud Storage resource, and expose
 it to someone else, to allow that party to access the URL for a given period of
-time, with no other authorization. 
+time, with no other authorization.
 
 You can do that with "signed URLs".  If you want to do this from within an Apigee Edge proxy, this callout might help.
 
@@ -82,7 +82,9 @@ Within the Properties, you can specify the various inputs for the signature.
 | -------------------- | -------- | ----------------------------------------------------------------- |
 | service-account-key  | required | the contents of the [service account key file](https://cloud.google.com/iam/docs/creating-managing-service-account-keys) from Google. This is a JSON string containing the service account information, includign the private key and client_email.       |
 | verb                 | required | the verb: GET, POST, etc                                          |
-| resource             | required | the resource string, eg: /example-bucket/cat-pics/tabby.jpeg      |
+| resource             | optional | the full resource string, eg: /example-bucket/cat-pics/tabby.jpeg |
+| bucket               | optional | the bucket name, eg example-bucket                                |
+| object               | optional | the object, eg. cat-pics/tabby.jpeg                               |
 | expires-in           | optional | a string representing _relative_ expiry.  10s, 5m, 2h, 3d.  With no character suffix, interpreted as "seconds". This interval is added to the current time to calculate expiry. For V4, the longest permitted expiration value is 604800 seconds (7 days). |
 | expiry               | optional | a string representing expiry, in absolute seconds-since-epoch.    |
 | addl-headers         | optional | a string of name:value pairs, separated by \|  |
@@ -94,6 +96,9 @@ which is a variable name surrounded by curlies, such
 as {verb}.
 
 Pass either `expires-in` or `expiry`. If you pass both, `expires-in` takes precedence.
+
+Pass either `resource` or the combination of `bucket` and `object`.  If you pass
+both, the logic will use what you pass for `resource`.
 
 The output of the callout is a set of context variables:
 
@@ -187,7 +192,28 @@ Connection: keep-alive
 }
 ```
 
+This signature is the right format, but won't be valid. That's because the
+bucket name and object name are fake, and the key used to sign is not registered
+with GCS. They are sample data.
+
+To actually produce a valid signed url, you need to invoke the callout with
+valid data for the bucket, object and key. If you have downloaded a service
+account .json file, and you have a GCS bucket and object, try it like this:
+
+```
+curl -i https://$ORG-$ENV.apigee.net/signurl/v4-t3 \
+  -H content-type:application/json \
+  -H gcs-bucket:my-gcs-bucket-name \
+  -H gcs-object:my-gcs-object-name \
+  -X POST \
+  --data-binary @service-account-credentials.json
+
+```
+
+The resulting URL will be usable in a browser.
+
+
+
 ## Bugs
 
 * The V2 callout does not support producing signed URLs that require additional headers.
-

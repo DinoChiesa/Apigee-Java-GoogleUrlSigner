@@ -1,0 +1,11 @@
+<JavaCallout name='Java-URL-Sign-V4-3'>
+  <Properties>
+    <Property name='service-account-key'>{request.content}</Property>
+    <Property name='verb'>GET</Property>
+    <Property name='bucket'>{request.header.gcs-bucket}</Property>
+    <Property name='object'>{request.header.gcs-object}</Property>
+    <Property name='expires-in'>5m</Property>
+  </Properties>
+  <ClassName>com.google.apigee.edgecallouts.rsa.V4SignedUrlCallout</ClassName>
+  <ResourceURL>java://edge-google-signed-url-20191024.jar</ResourceURL>
+</JavaCallout>

@@ -203,6 +203,22 @@ public abstract class SigningCalloutBase {
     return expiryEpochSeconds;
   }
 
+  protected String getResource(final MessageContext msgCtxt) throws Exception {
+    String resourceString = getSimpleOptionalProperty("resource", msgCtxt);
+    if (resourceString == null) {
+      try {
+      String bucket = getSimpleRequiredProperty("bucket", msgCtxt);
+      String object = getSimpleRequiredProperty("object", msgCtxt);
+      resourceString = "/" + bucket + "/" + object;
+      }
+      catch (IllegalStateException e) {
+        throw new IllegalStateException("specify either resource or bucket + object");
+      }
+    }
+    msgCtxt.setVariable(varName("resource"), resourceString);
+    return resourceString;
+  }
+
   protected boolean getDebug() {
     String value = (String) this.properties.get("debug");
     if (value == null) return false;

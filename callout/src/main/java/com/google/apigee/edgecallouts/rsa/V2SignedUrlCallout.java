@@ -47,7 +47,7 @@ public class V2SignedUrlCallout extends SigningCalloutBase implements Execution 
     String contentMd5 = getSimpleOptionalProperty("content-md5", msgCtxt);
     String contentType = getSimpleOptionalProperty("content-type", msgCtxt);
     long expirationInSeconds = getExpiry(msgCtxt);
-    String resource = getSimpleRequiredProperty("resource", msgCtxt);
+    String resource = getResource(msgCtxt);
     String canonicalizedExtensionHeaders = "";
     String stringToSign =
         verb
@@ -60,7 +60,6 @@ public class V2SignedUrlCallout extends SigningCalloutBase implements Execution 
             + "\n"
             + canonicalizedExtensionHeaders
             + resource;
-    msgCtxt.setVariable(varName("resource"), resource);
     msgCtxt.setVariable(varName("verb"), verb);
     msgCtxt.setVariable(varName("signing_string"), stringToSign);
     return stringToSign;
