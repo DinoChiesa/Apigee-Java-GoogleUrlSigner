@@ -199,7 +199,7 @@ Connection: keep-alive
 
 This is just a sample. This signature is the right format, but won't be valid. That's because the
 bucket name and object name are fake, and the key used to sign is not registered
-with GCS. They bucket, object, and key are all sample data.
+with GCS. The bucket, object, and key are all sample data.
 
 To actually produce a valid signed url, you need to invoke the callout with
 valid data for the bucket, object and key. If you have downloaded a service
@@ -276,4 +276,5 @@ The resulting URL will be usable in a browser.
 
 ## Bugs
 
-* The V2 callout does not support producing signed URLs that require additional headers.
+* The V2 callout does not support producing signed URLs that require additional
+  headers. This is probably a "won't fix" bug because V2 signing is deprecated.
