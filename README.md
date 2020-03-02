@@ -1,21 +1,34 @@
 # Edge Callout: Signed URL Generator
 
-This is a simple callout that generates a V4 or V2 signed URL for Google Cloud Storage.
+This is a simple callout that generates a signed URL for Google Cloud Storage.
 
 Google Cloud Storage allows apps to create [signed
 URLs](https://cloud.google.com/storage/docs/access-control/signed-urls) with
-expiry, to allow third parties a time-limited access to a resource. As of
-September 2019, Google is now recommending the V4 signature method.
+expiry, to allow third parties a time-limited access to a resource, like an
+object being stored by Google Cloud storage.
+
+It works like this: the app authenticates the third party in some way; the app
+generates a signed URL for the third party; the third party uses that signed
+thing in an HTTP request for an object from Google Cloud storage; GCS
+authenticates the signature before responding with the object content.
 
 This repo includes a class that produces a
 [V4 signature](https://cloud.google.com/storage/docs/access-control/signing-urls-manually),
 and a separate class that produces a [V2 signature](https://cloud.google.com/storage/docs/access-control/signed-urls-v2).
 
-To use V4 or V2 signed URLs, a client app must build a "String to Sign", and then
-sign it with an RSA key, using a SHA256 digest.  Then the app encodes that
-signature and embeds the encoded version into a url as a query parameter.
+> As of September 2019, Google is now recommending the "V4" signature
+> method. There was a previous method called "v2" which may still be supported,
+> but which Google is dis-recommending. This callout does either V4 or V2
+> signatures.
 
-That's what this callout does.
+To use V4 or V2 signed URLs, an app must build a "String to Sign", which
+includes information about the object being accessed and the access lifetime, and then
+must sign that string with an RSA key, using a SHA256 digest. Then the app encodes that
+signature and embeds the encoded version into a url as a query parameter. The
+app can send that full URL to the third party system, which can use the URL to
+connect directly with Google Cloud Storage. 
+
+This callout helps builds the URL.
 
 ## V2 vs V4
 
@@ -30,7 +43,8 @@ Suppose you need to generate a URL for Google Cloud Storage resource, and expose
 it to someone else, to allow that party to access the URL for a given period of
 time, with no other authorization.
 
-You can do that with "signed URLs".  If you want to do this from within an Apigee Edge proxy, this callout might help.
+You can do that with "signed URLs".  If you want to do this from within an
+Apigee Edge proxy, this callout might help.
 
 ## Why use an Apigee callout rather than direct signing?
 
