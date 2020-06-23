@@ -21,20 +21,22 @@ and a separate class that produces a [V2 signature](https://cloud.google.com/sto
 > but which Google is dis-recommending. This callout does either V4 or V2
 > signatures.
 
-To use V4 or V2 signed URLs, an app must build a "String to Sign", which
-includes information about the object being accessed and the access lifetime, and then
-must sign that string with an RSA key, using a SHA256 digest. Then the app encodes that
-signature and embeds the encoded version into a url as a query parameter. The
-app can send that full URL to the third party system, which can use the URL to
-connect directly with Google Cloud Storage. 
+Whether using V4 or V2 signed URLs, an app must build a "String to Sign", which
+includes information about the object being accessed and the access lifetime,
+and then must sign that string with an RSA private key, using a SHA256
+digest. Then the app encodes that signature and embeds the encoded version of
+the signature into a url as a query parameter. The app can send that full URL to
+the third party system, which can use the URL to connect directly with Google
+Cloud Storage.
 
-This callout helps builds the URL.
+This callout helps builds the URL, via all those steps.
 
 ## V2 vs V4
 
-Comparing V2 to V4 signing, the "string to sign" is different, and the signedurl itself is also
-different.  Also the V4 signing has more strict limits on the expiry. For more
-details see [this link](https://stackoverflow.com/q/58145068/48082).
+Comparing V2 to V4 signing, the "string to sign" is different, and the signedurl
+itself is also different. Also the V4 signing has more strict limits on the
+expiry. For more details see [this
+link](https://stackoverflow.com/q/58145068/48082).
 
 
 ## Why Signed URLs?
@@ -78,12 +80,12 @@ This code is open source. And, you don't need to compile it in order to use it.
 To use V4 signing, configure the policy like this:
 
 ```
-<JavaCallout name='Java-URL-Sign-V4'>
+<JavaCallout name='Java-URL-Sign-V4-Example1'>
   <Properties>
     <Property name='service-account-key'>{my_service_account_json}</Property>
     <Property name='verb'>GET</Property>
     <Property name='resource'>{my_resource}</Property>
-    <Property name='expires-in'>10m</Property>
+    <Property name='expires-in'>10m</Property> <!-- 10m = ten minutes -->
   </Properties>
   <ClassName>com.google.apigee.edgecallouts.rsa.V4SignedUrlCallout</ClassName>
   <ResourceURL>java://edge-google-signed-url-20191024.jar</ResourceURL>
@@ -124,6 +126,28 @@ The output of the callout is a set of context variables:
 | sign_duration         | The duration, (expiration time - now), in seconds. For diagnostic information.     |
 | sign_expiration_ISO   | An ISO-formatted string for the expiration. For diagnostics and human consumption. |
 
+
+## More Complex Example of V4 Signing
+
+Suppose you would like the signature to be valid for a request that includes an
+additional header and some additional query parameters. That configuration would
+look like this:
+
+```
+<JavaCallout name='Java-URL-Sign-V4-Example2'>
+  <Properties>
+    <Property name='service-account-key'>{my_service_account_json}</Property>
+    <Property name='verb'>GET</Property>
+    <Property name='resource'>{my_resource}</Property>
+    <Property name='expires-in'>1h</Property> <!-- 1h = one hour -->
+    <Property name='addl-headers'>accept:application/json</Property>
+    <!-- use CDATA for the below to escape the ampersands
+    <Property name='addl-query'><![CDATA[a=foo&b=bar]]></Property>
+  </Properties>
+  <ClassName>com.google.apigee.edgecallouts.rsa.V4SignedUrlCallout</ClassName>
+  <ResourceURL>java://edge-google-signed-url-20191024.jar</ResourceURL>
+</JavaCallout>
+```
 
 ## Configuration for V2 Signing (DEPRECATED)
 
