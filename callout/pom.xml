@@ -4,9 +4,9 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.google.apigee.edgecallouts</groupId>
-  <artifactId>edge-google-signed-url</artifactId>
-  <version>20191024</version>
-  <name>EdgeJavaGoogleSignedUrl</name>
+  <artifactId>apigee-google-signed-url</artifactId>
+  <version>20210311</version>
+  <name>ApigeeJavaGoogleSignedUrl</name>
   <url>http://maven.apache.org</url>
   <packaging>jar</packaging>
   <properties>

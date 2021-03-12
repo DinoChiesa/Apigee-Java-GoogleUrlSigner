@@ -6,6 +6,6 @@
     <!-- absolute expiry -->
     <Property name='expiry'>1597014120</Property>
   </Properties>
-  <ClassName>com.google.apigee.edgecallouts.rsa.V4SignedUrlCallout</ClassName>
-  <ResourceURL>java://edge-google-signed-url-20191024.jar</ResourceURL>
+  <ClassName>com.google.apigee.callouts.rsa.V4SignedUrlCallout</ClassName>
+  <ResourceURL>java://apigee-google-signed-url-20210311.jar</ResourceURL>
 </JavaCallout>

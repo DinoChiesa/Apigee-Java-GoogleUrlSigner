@@ -1,4 +1,4 @@
-// Copyright 2018-2019 Google LLC
+// Copyright 2018-2021 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
 // limitations under the License.
 //
 
-package com.google.apigee.edgecallouts.rsa;
+package com.google.apigee.callouts.rsa;
 
 import com.apigee.flow.message.MessageContext;
 import com.google.apigee.json.JavaxJson;

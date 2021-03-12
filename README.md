@@ -1,6 +1,6 @@
-# Edge Callout: Signed URL Generator
+# Apigee Callout: Signed URL Generator
 
-This is a simple callout that generates a signed URL for Google Cloud Storage.
+This is a simple callout for APigee that generates a signed URL for Google Cloud Storage.
 
 Google Cloud Storage allows apps to create [signed
 URLs](https://cloud.google.com/storage/docs/access-control/signed-urls) with
@@ -18,7 +18,7 @@ and a separate class that produces a [V2 signature](https://cloud.google.com/sto
 
 > As of September 2019, Google is now recommending the "V4" signature
 > method. There was a previous method called "v2" which may still be supported,
-> but which Google is dis-recommending. This callout does either V4 or V2
+> but which Google is dis-recommending. This callout can create either V4 or V2
 > signatures.
 
 Whether using V4 or V2 signed URLs, an app must build a "String to Sign", which
@@ -46,7 +46,7 @@ it to someone else, to allow that party to access the URL for a given period of
 time, with no other authorization.
 
 You can do that with "signed URLs".  If you want to do this from within an
-Apigee Edge proxy, this callout might help.
+Apigee proxy, this callout might help.
 
 ## Why use an Apigee callout rather than direct signing?
 
@@ -56,8 +56,8 @@ Python and Java, and maybe other languages.
 
 The advantage of using an Apigee callout to perform the signing is that Apigee
 can then act as a security mediator. The private key used for signing can remain
-secret, held  in Apigee.  Apigee can generate a signed URL and dispense it to a
-validated, authenticated client application.
+secret, held within Apigee. Apigee can generate a signed URL and dispense it to a
+validated, authenticated client application. The control and governance and visibility you get with Apigee is a nice advantage for an API-centric integration architecture.
 
 ## Disclaimer
 
@@ -70,7 +70,7 @@ If you have problems or questions, as on [commmunity.apigee.com](https://communi
 
 ## License
 
-This material is Copyright 2018-2019, Google LLC.
+This material is Copyright 2018-2021, Google LLC.
 and is licensed under the Apache 2.0 license. See the [LICENSE](LICENSE) file.
 
 This code is open source. And, you don't need to compile it in order to use it.
@@ -87,8 +87,8 @@ To use V4 signing, configure the policy like this:
     <Property name='resource'>{my_resource}</Property>
     <Property name='expires-in'>10m</Property> <!-- 10m = ten minutes -->
   </Properties>
-  <ClassName>com.google.apigee.edgecallouts.rsa.V4SignedUrlCallout</ClassName>
-  <ResourceURL>java://edge-google-signed-url-20191024.jar</ResourceURL>
+  <ClassName>com.google.apigee.callouts.rsa.V4SignedUrlCallout</ClassName>
+  <ResourceURL>java://apigee-google-signed-url-20210311.jar</ResourceURL>
 </JavaCallout>
 ```
 
@@ -144,8 +144,8 @@ look like this:
     <!-- use CDATA for the below to escape the ampersands
     <Property name='addl-query'><![CDATA[a=foo&b=bar]]></Property>
   </Properties>
-  <ClassName>com.google.apigee.edgecallouts.rsa.V4SignedUrlCallout</ClassName>
-  <ResourceURL>java://edge-google-signed-url-20191024.jar</ResourceURL>
+  <ClassName>com.google.apigee.callouts.rsa.V4SignedUrlCallout</ClassName>
+  <ResourceURL>java://apigee-google-signed-url-20210311.jar</ResourceURL>
 </JavaCallout>
 ```
 
@@ -162,8 +162,8 @@ To use V2 signing (now deprecated by Google), configure the policy like this:
     <Property name='resource'>{my_resource}</Property>
     <Property name='expires-in'>10m</Property>
   </Properties>
-  <ClassName>com.google.apigee.edgecallouts.rsa.V2SignedUrlCallout</ClassName>
-  <ResourceURL>java://edge-google-signed-url-20191024.jar</ResourceURL>
+  <ClassName>com.google.apigee.callouts.rsa.V2SignedUrlCallout</ClassName>
+  <ResourceURL>java://apigee-google-signed-url-20210311.jar</ResourceURL>
 </JavaCallout>
 ```
 
