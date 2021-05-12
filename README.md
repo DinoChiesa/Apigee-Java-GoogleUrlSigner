@@ -198,6 +198,9 @@ This is just a sample. This signature is the right format, but it won't be valid
 bucket name and object name are fake, and the key used to sign is not registered
 with GCS. The bucket, object, and key are _ALL SAMPLE DATA_.
 
+
+#### Valid Signed URL for GET
+
 To actually produce a valid signed url, you need to invoke the callout with
 valid data for the bucket, object and key. If you have downloaded a service
 account .json file, and you have a GCS bucket and object, try it like this:
@@ -209,9 +212,8 @@ curl -i $endpoint/signurl/kvm/sakey \
   -H content-type:application/json \
   -X POST \
   --data-binary @service-account-credentials.json
-
-curl -i $endpoint/signurl/kvm/sakey \
 ```
+
 Then, invoke the proxy to generate the signed URL.
 ```
 curl -i $endpoint/signurl/v4/real \
@@ -219,12 +221,31 @@ curl -i $endpoint/signurl/v4/real \
   -X POST -d bucket=your-bucket -d object=your-object
 ```
 
-The resulting URL will be usable in a browser to GET the object. If you want to allow upload,
+The resulting URL will be usable in a browser to GET the object.
+
+#### Upload
+
+If you want generate a signed URL that allows upload, also specify a `verb` form parameter with the value `PUT`:
+
 ```
 curl -i $endpoint/signurl/v4/real \
   -H content-type:application/x-www-form-urlencoded \
-  -X POST -d bucket=your-bucket -d object=your-object -d verb=POST
+  -X POST -d bucket=your-bucket -d object=your-object -d verb=PUT
 ```
+
+The resulting URL will be usable to PUT an object with the given name, into the bucket.
+
+#### Upload with a given content-type
+
+If you want generate a signed URL that allows upload of an object with a specific content-type, also specify a `ctype` form parameter:
+
+```
+curl -i $endpoint/signurl/v4/real \
+  -H content-type:application/x-www-form-urlencoded \
+  -X POST -d bucket=your-bucket -d object=my-image.png -d verb=PUT -d ctype=application/png
+```
+
+The resulting URL will be usable to PUT an object with the given name and given content-type, into the GCS bucket.
 
 
 ## Configuration for V2 Signing (DEPRECATED)
