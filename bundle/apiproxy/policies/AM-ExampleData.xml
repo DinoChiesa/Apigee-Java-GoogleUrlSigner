@@ -1,5 +1,4 @@
 <AssignMessage name='AM-ExampleData'>
-  <DisplayName>AM-Variables</DisplayName>
   <IgnoreUnresolvedVariables>false</IgnoreUnresolvedVariables>
   <AssignVariable>
     <Name>my_resource</Name>
