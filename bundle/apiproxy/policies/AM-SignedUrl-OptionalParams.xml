@@ -19,4 +19,14 @@
     <Template>{firstnonnull(request.formparam.expiry,default_signedurl_expiry)}</Template>
   </AssignVariable>
 
+  <AssignVariable>
+    <Name>default_signedurl_ctype</Name>
+    <Value>application/octet-stream</Value>
+  </AssignVariable>
+
+  <AssignVariable>
+    <Name>signedurl_addl_headers</Name>
+    <Template>content-type:{firstnonnull(request.formparam.ctype,default_signedurl_ctype)}</Template>
+  </AssignVariable>
+
 </AssignMessage>

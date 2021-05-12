@@ -84,10 +84,18 @@
         <Step>
           <Name>AM-SignedUrl-OptionalParams</Name>
         </Step>
+
         <Step>
           <Name>Java-URL-Sign-V4</Name>
+          <Condition>request.formparam.ctype = null</Condition>
+        </Step>
+
+        <Step>
+          <Name>Java-URL-Sign-V4-with-ContentType</Name>
+          <Condition>request.formparam.ctype != null</Condition>
         </Step>
       </Request>
+
       <Response>
         <Step>
           <Name>AM-Response</Name>

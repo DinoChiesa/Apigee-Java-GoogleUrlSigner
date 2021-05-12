@@ -145,7 +145,7 @@ look like this:
     <Property name='verb'>GET</Property>
     <Property name='resource'>{my_resource}</Property>
     <Property name='expires-in'>1h</Property> <!-- 1h = one hour -->
-    <Property name='addl-headers'>accept:application/json</Property>
+    <Property name='addl-headers'>content-type:application/octet-stream</Property>
     <!-- use CDATA for the below to escape the ampersands
     <Property name='addl-query'><![CDATA[a=foo&b=bar]]></Property>
   </Properties>
@@ -153,60 +153,6 @@ look like this:
   <ResourceURL>java://apigee-google-signed-url-20210311.jar</ResourceURL>
 </JavaCallout>
 ```
-
-## Configuration for V2 Signing (DEPRECATED)
-
-To use V2 signing (which is now deprecated by Google), configure the policy like this:
-
-```
-<JavaCallout name='Java-URL-Sign-V2'>
-  <Properties>
-    <Property name='private-key'>{my_private_key}</Property>
-    <Property name='private-key-password'>{my_private_key_password}</Property>
-    <Property name='verb'>GET</Property>
-    <Property name='resource'>{my_resource}</Property>
-    <Property name='expires-in'>10m</Property>
-  </Properties>
-  <ClassName>com.google.apigee.callouts.rsa.V2SignedUrlCallout</ClassName>
-  <ResourceURL>java://apigee-google-signed-url-20210311.jar</ResourceURL>
-</JavaCallout>
-```
-
-You can see this configuration specifies a different class name.
-
-The V2 class accepts different Properties, for the various inputs for the signature.
-
-| name                 | required | meaning                                                           |
-| -------------------- | -------- | ----------------------------------------------------------------- |
-| service-account-key  | required | the contents of the [service account key file](https://cloud.google.com/iam/docs/creating-managing-service-account-keys) from Google. This is a JSON string containing the service account information, includign the private key and client_email.       |
-| verb                 | required | the verb: GET, POST, etc                                          |
-| resource             | optional | the resource string, eg: /example-bucket/cat-pics/tabby.jpeg      |
-| bucket               | optional | the bucket name, eg example-bucket                                |
-| object               | optional | the object, eg. cat-pics/tabby.jpeg                               |
-| expires-in           | optional | a string representing _relative_ expiry, eg. 10s, 5m, 2h, 3d.  With no character suffix, interpreted as "seconds". |
-| expiry               | optional | a string representing expiry, in absolute seconds-since-epoch.    |
-| content-md5          | optional | the MD5 checksum the client must pass.                            |
-| content-type         | optional | content-type header, as above.                                    |
-
-
-Pass either `expires-in` or `expiry`. If you pass both, `expires-in` takes precedence.
-
-Pass either `resource` or the combination of `bucket` and `object`.  If you pass
-both, the logic will use what you pass for `resource`.
-
-Today it is not possible to pass canonicalized extension headers.
-
-The output of the callout is a set of context variables:
-
-| name                     | meaning                                                                            |
-| ------------------------ | ---------------------------------------------------------------------------------- |
-| sign\_signedurl           | the full signedurl                                                                 |
-| sign\_signature           | the base64-encoded, then url-encoded signature value                               |
-| sign\_signature_unencoded | the base64-encoded signature value                                                 |
-| sign\_expiration          | The expiration value, in seconds-since-epoch. Computed from NOW + expires-in.      |
-| sign\_duration            | The duration, (expiration time - now), in seconds. For diagnostic information.     |
-| sign\_expiration\_ISO      | An ISO-formatted string for the expiration. For diagnostics and human consumption. |
-
 
 ## Examples
 
@@ -279,6 +225,60 @@ curl -i $endpoint/signurl/v4/real \
   -H content-type:application/x-www-form-urlencoded \
   -X POST -d bucket=your-bucket -d object=your-object -d verb=POST
 ```
+
+
+## Configuration for V2 Signing (DEPRECATED)
+
+To use V2 signing (which is now deprecated by Google), configure the policy like this:
+
+```
+<JavaCallout name='Java-URL-Sign-V2'>
+  <Properties>
+    <Property name='private-key'>{my_private_key}</Property>
+    <Property name='private-key-password'>{my_private_key_password}</Property>
+    <Property name='verb'>GET</Property>
+    <Property name='resource'>{my_resource}</Property>
+    <Property name='expires-in'>10m</Property>
+  </Properties>
+  <ClassName>com.google.apigee.callouts.rsa.V2SignedUrlCallout</ClassName>
+  <ResourceURL>java://apigee-google-signed-url-20210311.jar</ResourceURL>
+</JavaCallout>
+```
+
+You can see this configuration specifies a different class name.
+
+The V2 class accepts different Properties, for the various inputs for the signature.
+
+| name                 | required | meaning                                                           |
+| -------------------- | -------- | ----------------------------------------------------------------- |
+| service-account-key  | required | the contents of the [service account key file](https://cloud.google.com/iam/docs/creating-managing-service-account-keys) from Google. This is a JSON string containing the service account information, includign the private key and client_email.       |
+| verb                 | required | the verb: GET, POST, etc                                          |
+| resource             | optional | the resource string, eg: /example-bucket/cat-pics/tabby.jpeg      |
+| bucket               | optional | the bucket name, eg example-bucket                                |
+| object               | optional | the object, eg. cat-pics/tabby.jpeg                               |
+| expires-in           | optional | a string representing _relative_ expiry, eg. 10s, 5m, 2h, 3d.  With no character suffix, interpreted as "seconds". |
+| expiry               | optional | a string representing expiry, in absolute seconds-since-epoch.    |
+| content-md5          | optional | the MD5 checksum the client must pass.                            |
+| content-type         | optional | content-type header, as above.                                    |
+
+
+Pass either `expires-in` or `expiry`. If you pass both, `expires-in` takes precedence.
+
+Pass either `resource` or the combination of `bucket` and `object`.  If you pass
+both, the logic will use what you pass for `resource`.
+
+Today it is not possible to pass canonicalized extension headers.
+
+The output of the callout is a set of context variables:
+
+| name                     | meaning                                                                            |
+| ------------------------ | ---------------------------------------------------------------------------------- |
+| sign\_signedurl           | the full signedurl                                                                 |
+| sign\_signature           | the base64-encoded, then url-encoded signature value                               |
+| sign\_signature_unencoded | the base64-encoded signature value                                                 |
+| sign\_expiration          | The expiration value, in seconds-since-epoch. Computed from NOW + expires-in.      |
+| sign\_duration            | The duration, (expiration time - now), in seconds. For diagnostic information.     |
+| sign\_expiration\_ISO      | An ISO-formatted string for the expiration. For diagnostics and human consumption. |
 
 
 ### V2 Example
