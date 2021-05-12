@@ -1,0 +1,86 @@
+<ProxyEndpoint name="kvm">
+  <Description>For KVM Maintenance</Description>
+  <HTTPProxyConnection>
+    <BasePath>/signurl/kvm</BasePath>
+    <Properties/>
+    <VirtualHost>secure</VirtualHost>
+  </HTTPProxyConnection>
+
+  <FaultRules/>
+  <DefaultFaultRule name="fault-rule">
+    <Step>
+      <Name>AM-InjectProxyVersionHeader</Name>
+    </Step>
+    <AlwaysEnforce/>
+  </DefaultFaultRule>
+
+  <PreFlow name="PreFlow">
+    <Request>
+    </Request>
+    <Response>
+      <Step>
+        <Name>AM-CleanResponseHeaders</Name>
+      </Step>
+    </Response>
+  </PreFlow>
+  <PostFlow name="PostFlow">
+    <Request>
+    </Request>
+    <Response>
+      <Step>
+        <Name>AM-InjectProxyVersionHeader</Name>
+      </Step>
+    </Response>
+  </PostFlow>
+  <PostClientFlow name="PostFlow">
+    <Request>
+    </Request>
+    <Response>
+    </Response>
+  </PostClientFlow>
+
+  <Flows>
+
+    <Flow name="post-SA-key-to-settings">
+      <Request>
+        <Step>
+          <Name>KVM-Put-ServiceAccountKey</Name>
+        </Step>
+      </Request>
+      <Response>
+        <Step>
+          <Name>AM-KeyResponse</Name>
+        </Step>
+      </Response>
+      <Condition>proxy.pathsuffix MatchesPath "/sakey" AND request.verb = "POST"</Condition>
+    </Flow>
+
+    <Flow name="delete-SA-key-from-settings">
+      <Request>
+        <Step>
+          <Name>KVM-Delete-ServiceAccountKey</Name>
+        </Step>
+      </Request>
+      <Response>
+        <Step>
+          <Name>AM-KeyResponse</Name>
+        </Step>
+      </Response>
+      <Condition>proxy.pathsuffix MatchesPath "/sakey" AND request.verb = "DELETE"</Condition>
+    </Flow>
+
+    <Flow name="unknown request">
+      <Request>
+        <Step>
+          <Name>RF-UnknownRequest</Name>
+        </Step>
+      </Request>
+      <Response>
+      </Response>
+    </Flow>
+
+  </Flows>
+
+  <RouteRule name="NoRouteRule"/>
+
+</ProxyEndpoint>

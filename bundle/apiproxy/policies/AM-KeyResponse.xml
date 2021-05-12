@@ -1,0 +1,7 @@
+<AssignMessage name='AM-KeyResponse'>
+  <Set>
+    <Payload/>
+    <StatusCode>204</StatusCode>
+    <ReasonPhrase>No Content</ReasonPhrase>
+  </Set>
+</AssignMessage>

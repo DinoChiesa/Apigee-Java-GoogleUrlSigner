@@ -1,7 +1,4 @@
-<AssignMessage name='AM-CleanResponseHeaders'>
-  <Remove>
-    <Headers/>
-  </Remove>
+<AssignMessage name='AM-InjectProxyVersionHeader'>
   <Set>
     <Headers>
       <Header name="apiproxy">{apiproxy.name} r{apiproxy.revision} {proxy.name}</Header>

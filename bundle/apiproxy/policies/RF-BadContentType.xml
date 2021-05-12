@@ -1,0 +1,16 @@
+<RaiseFault name='RF-BadContentType'>
+  <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+  <FaultResponse>
+    <Set>
+      <Payload contentType='application/json'>{
+  "error" : {
+    "code" : 415.01,
+    "message" : "You must pass content-type=application/x-www-form-urlencoded"
+  }
+}
+</Payload>
+      <StatusCode>415</StatusCode>
+      <ReasonPhrase>Bad Media Type</ReasonPhrase>
+    </Set>
+  </FaultResponse>
+</RaiseFault>

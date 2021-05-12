@@ -1,11 +1,11 @@
-<RaiseFault name='RF-InvalidRequest'>
+<RaiseFault name='RF-MissingKey'>
   <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
   <FaultResponse>
     <Set>
       <Payload contentType='application/json'>{
   "error" : {
-    "code" : 400.01,
-    "message" : "invalid request. Missing required formparam?"
+    "code" : 400.02,
+    "message" : "invalid request: have you loaded the service account key?"
   }
 }
 </Payload>

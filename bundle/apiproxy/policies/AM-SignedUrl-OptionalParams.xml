@@ -1,0 +1,22 @@
+<AssignMessage name='AM-SignedUrl-OptionalParams'>
+  <AssignVariable>
+    <Name>default_signedurl_verb</Name>
+    <Value>GET</Value>
+  </AssignVariable>
+
+  <AssignVariable>
+    <Name>signedurl_verb</Name>
+    <Template>{firstnonnull(request.formparam.verb,default_signedurl_verb)}</Template>
+  </AssignVariable>
+
+  <AssignVariable>
+    <Name>default_signedurl_expiry</Name>
+    <Value>5m</Value>
+  </AssignVariable>
+
+  <AssignVariable>
+    <Name>signedurl_expiry</Name>
+    <Template>{firstnonnull(request.formparam.expiry,default_signedurl_expiry)}</Template>
+  </AssignVariable>
+
+</AssignMessage>

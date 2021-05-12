@@ -1,6 +1,6 @@
 # Apigee Callout: Signed URL Generator
 
-This is a simple callout for APigee that generates a signed URL for Google Cloud Storage.
+This is a simple callout for Apigee that generates a signed URL for Google Cloud Storage.
 
 Google Cloud Storage allows apps to create [signed
 URLs](https://cloud.google.com/storage/docs/access-control/signed-urls) with
@@ -18,8 +18,8 @@ and a separate class that produces a [V2 signature](https://cloud.google.com/sto
 
 > As of September 2019, Google is now recommending the "V4" signature
 > method. There was a previous method called "v2" which may still be supported,
-> but which Google is dis-recommending. This callout can create either V4 or V2
-> signatures.
+> but which Google is dis-recommending. By default, this callout creates V4
+> signatures. You can configure it to alternatively create V2 signatures.
 
 Whether using V4 or V2 signed URLs, an app must build a "String to Sign", which
 includes information about the object being accessed and the access lifetime,
@@ -27,7 +27,7 @@ and then must sign that string with an RSA private key, using a SHA256
 digest. Then the app encodes that signature and embeds the encoded version of
 the signature into a url as a query parameter. The app can send that full URL to
 the third party system, which can use the URL to connect directly with Google
-Cloud Storage.
+Cloud Storage, for either PUT or GET operations.
 
 This callout helps builds the URL, via all those steps.
 
@@ -38,26 +38,31 @@ itself is also different. Also the V4 signing has more strict limits on the
 expiry. For more details see [this
 link](https://stackoverflow.com/q/58145068/48082).
 
+This is of historical interest only, because V2 signing is deprecated.
 
 ## Why Signed URLs?
 
 Suppose you need to generate a URL for Google Cloud Storage resource, and expose
-it to someone else, to allow that party to access the URL for a given period of
-time, with no other authorization.
+it to someone else, to allow that party to access the URL - for example to
+upload a file, or to download a file - for only a limited period of time, with no other
+authorization.
 
 You can do that with "signed URLs".  If you want to do this from within an
 Apigee proxy, this callout might help.
 
 ## Why use an Apigee callout rather than direct signing?
 
-Any app that has access to an RSA signing library could implement this signing
-itself. In the documentation pages for V4 signing, Google provides examples in
-Python and Java, and maybe other languages.
+You could write your own code to build a signed URL. Any app that has access to
+an RSA signing library could implement this signing itself. In the documentation
+pages for V4 signing, Google provides examples in Python and Java, and maybe
+other languages.
 
 The advantage of using an Apigee callout to perform the signing is that Apigee
 can then act as a security mediator. The private key used for signing can remain
-secret, held within Apigee. Apigee can generate a signed URL and dispense it to a
-validated, authenticated client application. The control and governance and visibility you get with Apigee is a nice advantage for an API-centric integration architecture.
+secret, held within Apigee. Apigee can generate a signed URL and dispense it to
+a validated, authenticated client application. The control and governance and
+visibility you get with Apigee is a nice advantage for an API-centric
+integration architecture.
 
 ## Disclaimer
 
@@ -109,7 +114,7 @@ Within the Properties, you can specify the various inputs for the signature.
 
 For all properties, you can pass an explicit value or a variable reference,
 which is a variable name surrounded by curlies, such
-as {verb}.
+as {my-variable}.
 
 Pass either `expires-in` or `expiry`. If you pass both, `expires-in` takes precedence.
 
@@ -118,13 +123,13 @@ both, the logic will use what you pass for `resource`.
 
 The output of the callout is a set of context variables:
 
-| name                  | meaning                                                                            |
-| --------------------- | ---------------------------------------------------------------------------------- |
-| sign_signedurl        | the full signedurl                                                                 |
-| sign_signature        | the hex-encoded (aka base16-encoded) signature.                                    |
-| sign_expiration       | The expiration value, in seconds-since-epoch. Computed from NOW + expires-in.      |
-| sign_duration         | The duration, (expiration time - now), in seconds. For diagnostic information.     |
-| sign_expiration_ISO   | An ISO-formatted string for the expiration. For diagnostics and human consumption. |
+| name                   | meaning                                                                            |
+| ---------------------- | ---------------------------------------------------------------------------------- |
+| sign\_signedurl        | the full signedurl                                                                 |
+| sign\_signature        | the hex-encoded (aka base16-encoded) signature.                                    |
+| sign\_expiration       | The expiration value, in seconds-since-epoch. Computed from NOW + expires-in. For diagnostic information.     |
+| sign\_duration         | The duration, (expiration time - now), in seconds. For diagnostic information.     |
+| sign\_expiration\_ISO  | An ISO-formatted string for the expiration. For diagnostics and human consumption. |
 
 
 ## More Complex Example of V4 Signing
@@ -151,7 +156,7 @@ look like this:
 
 ## Configuration for V2 Signing (DEPRECATED)
 
-To use V2 signing (now deprecated by Google), configure the policy like this:
+To use V2 signing (which is now deprecated by Google), configure the policy like this:
 
 ```
 <JavaCallout name='Java-URL-Sign-V2'>
@@ -167,7 +172,9 @@ To use V2 signing (now deprecated by Google), configure the policy like this:
 </JavaCallout>
 ```
 
-Within the Properties, you can specify the various inputs for the signature.
+You can see this configuration specifies a different class name.
+
+The V2 class accepts different Properties, for the various inputs for the signature.
 
 | name                 | required | meaning                                                           |
 | -------------------- | -------- | ----------------------------------------------------------------- |
@@ -193,24 +200,30 @@ The output of the callout is a set of context variables:
 
 | name                     | meaning                                                                            |
 | ------------------------ | ---------------------------------------------------------------------------------- |
-| sign_signedurl           | the full signedurl                                                                 |
-| sign_signature           | the base64-encoded, then url-encoded signature value                               |
-| sign_signature_unencoded | the base64-encoded signature value                                                 |
-| sign_expiration          | The expiration value, in seconds-since-epoch. Computed from NOW + expires-in.      |
-| sign_duration            | The duration, (expiration time - now), in seconds. For diagnostic information.     |
-| sign_expiration_ISO      | An ISO-formatted string for the expiration. For diagnostics and human consumption. |
+| sign\_signedurl           | the full signedurl                                                                 |
+| sign\_signature           | the base64-encoded, then url-encoded signature value                               |
+| sign\_signature_unencoded | the base64-encoded signature value                                                 |
+| sign\_expiration          | The expiration value, in seconds-since-epoch. Computed from NOW + expires-in.      |
+| sign\_duration            | The duration, (expiration time - now), in seconds. For diagnostic information.     |
+| sign\_expiration\_ISO      | An ISO-formatted string for the expiration. For diagnostics and human consumption. |
 
 
 ## Examples
 
 See the attached [bundle](./bundle) for a working API Proxy.
-To use it, deploy it to any org and environment, then invoke it like this:
+To use it,
+
+1. deploy it to any org and environment.
+2. create an environment-scoped KVM called "settings"
+
+Then invoke it like this:
 
 ### V4 Example
 ```
 ORG=myorg
 ENV=myenv
-curl -i https://$ORG-$ENV.apigee.net/signurl/v4-t1
+endpoint=https://$ORG-$ENV.apigee.net
+curl -i $endpoint/signurl/v4/example
 ```
 
 You should see a signature upon output:
@@ -235,38 +248,45 @@ Connection: keep-alive
 }
 ```
 
-This is just a sample. This signature is the right format, but won't be valid. That's because the
+This is just a sample. This signature is the right format, but it won't be valid. That's because the
 bucket name and object name are fake, and the key used to sign is not registered
-with GCS. The bucket, object, and key are all sample data.
+with GCS. The bucket, object, and key are _ALL SAMPLE DATA_.
 
 To actually produce a valid signed url, you need to invoke the callout with
 valid data for the bucket, object and key. If you have downloaded a service
 account .json file, and you have a GCS bucket and object, try it like this:
 
+First load your actual service account key into the encrypted KVM (This is a one-time operation):
+
 ```
-curl -i https://$ORG-$ENV.apigee.net/signurl/v4-t3 \
+curl -i $endpoint/signurl/kvm/sakey \
   -H content-type:application/json \
-  -H gcs-bucket:my-gcs-bucket-name \
-  -H gcs-object:my-gcs-object-name \
   -X POST \
   --data-binary @service-account-credentials.json
 
+curl -i $endpoint/signurl/kvm/sakey \
+```
+Then, invoke the proxy to generate the signed URL.
+```
+curl -i $endpoint/signurl/v4/real \
+  -H content-type:application/x-www-form-urlencoded \
+  -X POST -d bucket=your-bucket -d object=your-object
 ```
 
-The resulting URL will be usable in a browser.
-
-This is only a demonstration. You wouldn't do this in a production system. You wouldn't have the client send
-the key to Apigee to enable Apigee to compute the signature; it wouldn't make
-sense. Sending the credentials to Apigee is done only for the purposes of
-demonstration. These credentials should be stored in the encrypted KVM, as a
-secret known only to Apigee.
+The resulting URL will be usable in a browser to GET the object. If you want to allow upload,
+```
+curl -i $endpoint/signurl/v4/real \
+  -H content-type:application/x-www-form-urlencoded \
+  -X POST -d bucket=your-bucket -d object=your-object -d verb=POST
+```
 
 
 ### V2 Example
 ```
 ORG=myorg
 ENV=myenv
-curl -i https://$ORG-$ENV.apigee.net/signurl/v2-t1
+endpoint=https://$ORG-$ENV.apigee.net
+curl -i $endpoint/signurl/v2/example
 ```
 
 You should see a signature upon output:
@@ -299,13 +319,11 @@ with GCS. They are sample data.
 To actually produce a valid signed url, provide all the necessary inputs explicitly:
 
 ```
-curl -i https://$ORG-$ENV.apigee.net/signurl/v2-t3 \
-  -H content-type:application/json \
-  -H gcs-bucket:my-gcs-bucket-name \
-  -H gcs-object:my-gcs-object-name \
+curl -i $endpoint/signurl/v2/real \
   -X POST \
-  --data-binary @service-account-credentials.json
-
+  -H content-type:application/x-www-form-urlencoded \
+  -d bucket=my-gcs-bucket-name \
+  -d object=my-gcs-object-name
 ```
 
 The resulting URL will be usable in a browser.
@@ -315,4 +333,4 @@ The resulting URL will be usable in a browser.
 ## Bugs
 
 * The V2 callout does not support producing signed URLs that require additional
-  headers. This is probably a "won't fix" bug because V2 signing is deprecated.
+  headers. This is a "won't fix" bug because V2 signing is deprecated.

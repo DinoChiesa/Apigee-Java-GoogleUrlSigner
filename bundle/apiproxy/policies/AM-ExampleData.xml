@@ -1,4 +1,4 @@
-<AssignMessage name='AM-Variables'>
+<AssignMessage name='AM-ExampleData'>
   <DisplayName>AM-Variables</DisplayName>
   <IgnoreUnresolvedVariables>false</IgnoreUnresolvedVariables>
   <AssignVariable>
@@ -14,7 +14,7 @@
         But in production you will want to store yours in the encrypted KVM,
         and retrieve it into a "private." variable using a KeyValueMapOperations policy.
      -->
-    <Name>my_service_account_key</Name>
+    <Name>fake_service_account_key</Name>
     <Value>
     {
       "type": "service_account",

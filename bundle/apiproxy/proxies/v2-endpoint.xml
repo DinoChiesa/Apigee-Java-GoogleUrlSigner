@@ -1,0 +1,112 @@
+<ProxyEndpoint name="v2-endpoint">
+  <Description>Proxy Endpoint for V2 signing (deprecated)</Description>
+  <HTTPProxyConnection>
+    <BasePath>/signurl/v2</BasePath>
+    <Properties/>
+    <VirtualHost>secure</VirtualHost>
+  </HTTPProxyConnection>
+
+  <FaultRules/>
+  <DefaultFaultRule name="fault-rule">
+    <Step>
+      <Name>AM-InjectProxyVersionHeader</Name>
+    </Step>
+    <AlwaysEnforce/>
+  </DefaultFaultRule>
+
+  <PreFlow name="PreFlow">
+    <Request>
+    </Request>
+    <Response>
+      <Step>
+        <Name>AM-CleanResponseHeaders</Name>
+      </Step>
+    </Response>
+  </PreFlow>
+  <PostFlow name="PostFlow">
+    <Request>
+    </Request>
+    <Response>
+      <Step>
+        <Name>AM-InjectProxyVersionHeader</Name>
+      </Step>
+    </Response>
+  </PostFlow>
+  <PostClientFlow name="PostFlow">
+    <Request>
+    </Request>
+    <Response>
+    </Response>
+  </PostClientFlow>
+
+  <Flows>
+
+    <Flow name="version2-example">
+      <!-- this flow uses a "fake" example service account credential. -->
+      <Request>
+        <Step>
+          <Name>AM-ExampleData</Name>
+        </Step>
+        <Step>
+          <Name>Java-URL-Sign-V2-FakeKey</Name>
+        </Step>
+      </Request>
+      <Response>
+        <Step>
+          <Name>AM-Response</Name>
+        </Step>
+      </Response>
+      <Condition>(proxy.pathsuffix MatchesPath "/example") and (request.verb = "GET")</Condition>
+    </Flow>
+
+    <Flow name="version2-real">
+      <Request>
+        <Step>
+          <Name>RF-BadContentType</Name>
+          <Condition>request.header.content-type != "application/x-www-form-urlencoded"</Condition>
+        </Step>
+        <Step>
+          <Name>RF-InvalidRequest</Name>
+          <Condition>request.formparam.bucket = null</Condition>
+        </Step>
+        <Step>
+          <Name>RF-InvalidRequest</Name>
+          <Condition>request.formparam.object = null</Condition>
+        </Step>
+        <Step>
+          <Name>KVM-Get-ServiceAccountKey</Name>
+        </Step>
+        <Step>
+          <Name>RF-MissingKey</Name>
+          <Condition>private.service_account_key_json = null</Condition>
+        </Step>
+        <Step>
+          <Name>AM-SignedUrl-OptionalParams</Name>
+        </Step>
+        <Step>
+          <Name>Java-URL-Sign-V2</Name>
+        </Step>
+      </Request>
+      <Response>
+        <Step>
+          <Name>AM-Response</Name>
+        </Step>
+      </Response>
+      <Condition>(proxy.pathsuffix MatchesPath "/real") and (request.verb = "POST")</Condition>
+    </Flow>
+
+    <Flow name="unknown request">
+      <Request>
+        <Step>
+          <Name>RF-UnknownRequest</Name>
+        </Step>
+      </Request>
+      <Response>
+      </Response>
+    </Flow>
+
+  </Flows>
+
+  <RouteRule name="NoRouteRule"/>
+
+</ProxyEndpoint>
