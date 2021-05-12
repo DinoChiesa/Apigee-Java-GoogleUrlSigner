@@ -73,6 +73,13 @@ This example is not an official Google product, nor is it part of an official Go
 This is a community supported project. There is no warranty for this code.
 If you have problems or questions, as on [commmunity.apigee.com](https://community.apigee.com).
 
+## Screencast
+
+I've produced [an 18-minute screencast](https://youtu.be/rqpbspscbmM) walking through this example. To check it out, click here:
+[![screencast thumbnail](./assets/thumbnail-20210512-135052.png)](https://youtu.be/rqpbspscbmM)
+
+This example is not an official Google product, nor is it part of an official Google product.
+
 ## License
 
 This material is Copyright 2018-2021, Google LLC.
@@ -161,6 +168,7 @@ To use it,
 
 1. deploy it to any org and environment.
 2. create an environment-scoped KVM called "settings"
+3. use Google Cloud Console to create a service account, download a key in .json format, and grant the account "Object owner" access to the GCS bucket. 
 
 Then invoke it like this:
 
