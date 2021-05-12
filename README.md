@@ -101,7 +101,7 @@ Within the Properties, you can specify the various inputs for the signature.
 
 | name                 | required | meaning                                                           |
 | -------------------- | -------- | ----------------------------------------------------------------- |
-| service-account-key  | required | the contents of the [service account key file](https://cloud.google.com/iam/docs/creating-managing-service-account-keys) from Google. This is a JSON string containing the service account information, includign the private key and client_email.       |
+| service-account-key  | required | the contents of the [service account key file](https://cloud.google.com/iam/docs/creating-managing-service-account-keys) from Google. This is a JSON string containing the service account information, including the private key and client\_email.       |
 | verb                 | required | the verb: GET, POST, etc                                          |
 | resource             | optional | the full resource string, eg: /example-bucket/cat-pics/tabby.jpeg |
 | bucket               | optional | the bucket name, eg example-bucket                                |
@@ -251,7 +251,7 @@ The V2 class accepts different Properties, for the various inputs for the signat
 
 | name                 | required | meaning                                                           |
 | -------------------- | -------- | ----------------------------------------------------------------- |
-| service-account-key  | required | the contents of the [service account key file](https://cloud.google.com/iam/docs/creating-managing-service-account-keys) from Google. This is a JSON string containing the service account information, includign the private key and client_email.       |
+| service-account-key  | required | the contents of the [service account key file](https://cloud.google.com/iam/docs/creating-managing-service-account-keys) from Google. This is a JSON string containing the service account information, including the private key and client\_email.       |
 | verb                 | required | the verb: GET, POST, etc                                          |
 | resource             | optional | the resource string, eg: /example-bucket/cat-pics/tabby.jpeg      |
 | bucket               | optional | the bucket name, eg example-bucket                                |
