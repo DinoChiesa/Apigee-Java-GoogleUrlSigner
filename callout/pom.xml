@@ -15,7 +15,7 @@
     <java.version>1.8</java.version>
     <javaxjson.version>1.1.4</javaxjson.version>
     <testng.version>6.8.7</testng.version>
-    <bouncycastle.version>1.60</bouncycastle.version>
+    <bouncycastle.version>1.67</bouncycastle.version>
     <jmockit.version>1.7</jmockit.version>
     <apiproxy.java.rsrc.dir>../bundle/apiproxy/resources/java</apiproxy.java.rsrc.dir>
   </properties>
