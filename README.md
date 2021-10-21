@@ -358,7 +358,6 @@ curl -i $endpoint/signurl/v2/real \
 The resulting URL will be usable in a browser.
 
 
-
 ## Bugs
 
 * The V2 callout does not support producing signed URLs that require additional

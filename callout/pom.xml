@@ -15,7 +15,7 @@
     <java.version>1.8</java.version>
     <javaxjson.version>1.1.4</javaxjson.version>
     <testng.version>6.8.7</testng.version>
-    <bouncycastle.version>1.60</bouncycastle.version>
+    <bouncycastle.version>1.67</bouncycastle.version>
     <jmockit.version>1.7</jmockit.version>
     <apiproxy.java.rsrc.dir>../bundle/apiproxy/resources/java</apiproxy.java.rsrc.dir>
   </properties>
@@ -110,7 +110,7 @@ mvn install:install-file \
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
-        <version>3.1.1</version>
+        <version>3.1.2</version>
         <executions>
           <execution>
             <id>copy-dependencies</id>
@@ -132,7 +132,7 @@ mvn install:install-file \
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.8.0</version>
+        <version>3.8.1</version>
         <configuration>
           <source>${java.version}</source>
           <target>${java.version}</target>
@@ -146,7 +146,7 @@ mvn install:install-file \
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
-        <version>3.1.1</version>
+        <version>3.2.0</version>
         <configuration>
           <archive>
             <!-- do not include the pom.xml file in the generated jar -->
@@ -159,6 +159,19 @@ mvn install:install-file \
         <artifactId>maven-antrun-plugin</artifactId>
         <executions>
           <execution>
+            <id>ant1</id>
+            <phase>clean</phase>
+            <configuration>
+              <tasks>
+                <delete>
+                  <fileset dir="${apiproxy.java.rsrc.dir}"
+                           includes="*.jar" />
+                </delete>
+              </tasks>
+            </configuration>
+          </execution>
+          <execution>
+            <id>ant2</id>
             <phase>package</phase>
             <configuration>
               <tasks>
@@ -169,6 +182,8 @@ mvn install:install-file \
                          already included in the Edge runtime:
                     -->
                     <include name="lib/*.jar"/>
+                    <exclude name="lib/bcprov-jdk15on-*.*.jar"/>
+                    <exclude name="lib/bcpkix-jdk15on-*.*.jar"/>
                     <exclude name="lib/message-flow-1.0.0.jar"/>
                     <exclude name="lib/expressions-1.0.0.jar"/>
                   </fileset>
@@ -186,7 +201,7 @@ mvn install:install-file \
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
-        <version>3.0.0-M2</version>
+        <version>3.0.0-M3</version>
         <executions>
           <execution>
             <id>enforce-maven</id>
@@ -196,7 +211,7 @@ mvn install:install-file \
             <configuration>
               <rules>
                 <requireMavenVersion>
-                  <version>3.0.5</version>
+                  <version>3.5.0</version>
                 </requireMavenVersion>
               </rules>
             </configuration>
@@ -207,7 +222,7 @@ mvn install:install-file \
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>versions-maven-plugin</artifactId>
-        <version>2.7</version>
+        <version>2.8.1</version>
         <executions>
           <execution>
             <phase>compile</phase>
