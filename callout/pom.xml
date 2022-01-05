@@ -134,12 +134,13 @@ mvn install:install-file \
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.8.1</version>
         <configuration>
+          <showDeprecation>true</showDeprecation>
           <source>${java.version}</source>
           <target>${java.version}</target>
-            <compilerArgs>
-              <!-- <arg>-verbose</arg> -->
-              <arg>-Xlint:unchecked,deprecation</arg>
-            </compilerArgs>
+          <compilerArgs>
+            <!-- <arg>-verbose</arg> -->
+            <arg>-Xlint:unchecked,deprecation</arg>
+          </compilerArgs>
         </configuration>
       </plugin>
 
@@ -157,24 +158,28 @@ mvn install:install-file \
 
       <plugin>
         <artifactId>maven-antrun-plugin</artifactId>
+        <version>3.0.0</version>
         <executions>
           <execution>
             <id>ant1</id>
             <phase>clean</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
             <configuration>
-              <tasks>
+              <target>
                 <delete>
                   <fileset dir="${apiproxy.java.rsrc.dir}"
                            includes="*.jar" />
                 </delete>
-              </tasks>
+              </target>
             </configuration>
           </execution>
           <execution>
             <id>ant2</id>
             <phase>package</phase>
             <configuration>
-              <tasks>
+              <target>
                 <copy todir="${apiproxy.java.rsrc.dir}">
                   <fileset dir="${project.build.directory}">
                     <include name="${project.build.finalName}.jar"/>
@@ -189,7 +194,7 @@ mvn install:install-file \
                   </fileset>
                   <mapper type="flatten"/>
                 </copy>
-              </tasks>
+              </target>
             </configuration>
             <goals>
               <goal>run</goal>
