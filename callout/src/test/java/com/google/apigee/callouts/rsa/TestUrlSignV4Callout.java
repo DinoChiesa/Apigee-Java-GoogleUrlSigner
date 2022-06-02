@@ -16,10 +16,6 @@
 package com.google.apigee.callouts.rsa;
 
 import com.apigee.flow.execution.ExecutionResult;
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import org.testng.Assert;
@@ -137,7 +133,9 @@ public class TestUrlSignV4Callout extends TestSignBase {
   public void badPrivateKey() throws Exception {
     String expectedError = "unknown object type when decoding private key";
     Map<String, String> props = new HashMap<String, String>();
-    props.put("service-account-key", "{\"type\" : \"service_account\", \"client_email\": \"foo\", \"private_key\" : \"this is not a private key\"}");
+    props.put(
+        "service-account-key",
+        "{\"type\" : \"service_account\", \"client_email\": \"foo\", \"private_key\" : \"this is not a private key\"}");
     props.put("verb", "GET");
     props.put("expires-in", "10m");
     props.put("resource", "/foo/bar");
@@ -158,10 +156,12 @@ public class TestUrlSignV4Callout extends TestSignBase {
   public void noResource() throws Exception {
     String expectedError = "specify either resource or bucket + object";
     Map<String, String> props = new HashMap<String, String>();
-    props.put("service-account-key", "{\"type\" : \"service_account\", \"client_email\": \"foo\", \"private_key\" : \"this is not a private key\"}");
+    props.put(
+        "service-account-key",
+        "{\"type\" : \"service_account\", \"client_email\": \"foo\", \"private_key\" : \"this is not a private key\"}");
     props.put("verb", "GET");
     props.put("expires-in", "10m");
-    //props.put("resource", "/foo/bar");
+    // props.put("resource", "/foo/bar");
 
     V4SignedUrlCallout callout = new V4SignedUrlCallout(props);
 
@@ -201,7 +201,7 @@ public class TestUrlSignV4Callout extends TestSignBase {
 
     Object duration = msgCtxt.getVariable("sign_duration");
     Assert.assertNotNull(duration, "duration");
-    Assert.assertEquals(Integer.parseInt((String)duration), 600);
+    Assert.assertEquals(Integer.parseInt((String) duration), 600);
 
     Object expirationISO = msgCtxt.getVariable("sign_expiration_ISO");
     Assert.assertNotNull(expirationISO, "expiration_ISO");
@@ -216,7 +216,6 @@ public class TestUrlSignV4Callout extends TestSignBase {
     System.out.println("duration: " + duration);
     System.out.println("=========================================================");
   }
-
 
   @Test
   public void goodResult2() throws Exception {
@@ -245,7 +244,7 @@ public class TestUrlSignV4Callout extends TestSignBase {
 
     Object duration = msgCtxt.getVariable("sign_duration");
     Assert.assertNotNull(duration, "duration");
-    Assert.assertEquals(Integer.parseInt((String)duration), 600);
+    Assert.assertEquals(Integer.parseInt((String) duration), 600);
 
     Object expirationISO = msgCtxt.getVariable("sign_expiration_ISO");
     Assert.assertNotNull(expirationISO, "expiration_ISO");
@@ -254,13 +253,14 @@ public class TestUrlSignV4Callout extends TestSignBase {
     Assert.assertNotNull(signedUrl, "signedUrl");
 
     System.out.printf("\n****\n");
-    System.out.printf("canonical request: %s\n\n", (String) msgCtxt.getVariable("sign_canonical_request"));
-    System.out.printf("string-to-sign: %s\n\n", (String) msgCtxt.getVariable("sign_string_to_sign"));
+    System.out.printf(
+        "canonical request: %s\n\n", (String) msgCtxt.getVariable("sign_canonical_request"));
+    System.out.printf(
+        "string-to-sign: %s\n\n", (String) msgCtxt.getVariable("sign_string_to_sign"));
     System.out.printf("signature: %s\n\n", signature);
     System.out.printf("signedUrl: %s\n", signedUrl);
     System.out.printf("expiry: %s\n", expirationISO);
     System.out.printf("duration: %s\n", duration);
     System.out.printf("=========================================================\n");
   }
-
 }
